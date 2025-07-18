@@ -365,8 +365,8 @@ export class ShopifyGraphql implements INodeType {
 									createdAt
 									updatedAt
 									processedAt
-									financialStatus
-									fulfillmentStatus
+									displayFinancialStatus
+									displayFulfillmentStatus
 									totalPriceSet {
 										shopMoney {
 											amount
@@ -394,8 +394,8 @@ export class ShopifyGraphql implements INodeType {
 											createdAt
 											updatedAt
 											processedAt
-											financialStatus
-											fulfillmentStatus
+											displayFinancialStatus
+											displayFulfillmentStatus
 											totalPriceSet {
 												shopMoney {
 													amount

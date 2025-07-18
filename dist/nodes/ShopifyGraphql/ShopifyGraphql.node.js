@@ -359,8 +359,8 @@ class ShopifyGraphql {
 									createdAt
 									updatedAt
 									processedAt
-									financialStatus
-									fulfillmentStatus
+									displayFinancialStatus
+									displayFulfillmentStatus
 									totalPriceSet {
 										shopMoney {
 											amount
@@ -389,8 +389,8 @@ class ShopifyGraphql {
 											createdAt
 											updatedAt
 											processedAt
-											financialStatus
-											fulfillmentStatus
+											displayFinancialStatus
+											displayFulfillmentStatus
 											totalPriceSet {
 												shopMoney {
 													amount
