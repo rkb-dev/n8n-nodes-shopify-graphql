@@ -1,4 +1,4 @@
-import type { ILoadOptionsFunctions, INodePropertyOptions } from 'n8n-workflow';
+import type { ILoadOptionsFunctions, INodePropertyOptions, IRequestOptions, IHttpRequestMethods } from 'n8n-workflow';
 
 /**
  * Load collections from the Shopify store for dynamic selection
@@ -31,19 +31,19 @@ export async function loadCollections(this: ILoadOptionsFunctions): Promise<INod
 
 		const variables = { first: 50 };
 		
-		// Use the correct API request method for loadOptions
+		// Use the correct API request pattern from GenericFunctions
 		const credentials = await this.getCredentials('shopifyGraphqlApi');
-		const response = await this.helpers.requestWithAuthentication.call(
-			this, 
-			'shopifyGraphqlApi', 
-			{
-				method: 'POST',
-				url: `https://${credentials.shopDomain}.myshopify.com/admin/api/2024-01/graphql.json`,
-				body: { query, variables },
-				headers: { 'Content-Type': 'application/json' },
-				json: true,
-			}
-		);
+		const requestOptions: IRequestOptions = {
+			method: 'POST' as IHttpRequestMethods,
+			body: { query, variables },
+			uri: `https://${credentials.shopName}.myshopify.com/admin/api/${credentials.apiVersion}/graphql.json`,
+			json: true,
+			headers: {
+				'X-Shopify-Access-Token': credentials.accessToken,
+				'Content-Type': 'application/json',
+			},
+		};
+		const response = await this.helpers.request(requestOptions);
 
 		const options: INodePropertyOptions[] = [];
 

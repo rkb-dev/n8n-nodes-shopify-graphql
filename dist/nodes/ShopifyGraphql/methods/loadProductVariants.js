@@ -55,15 +55,19 @@ async function loadProductVariants() {
 			}
 		`;
         const variables = { productId: formattedProductId };
-        // Use the correct API request method for loadOptions
+        // Use the correct API request pattern from GenericFunctions
         const credentials = await this.getCredentials('shopifyGraphqlApi');
-        const response = await this.helpers.requestWithAuthentication.call(this, 'shopifyGraphqlApi', {
+        const requestOptions = {
             method: 'POST',
-            url: `https://${credentials.shopDomain}.myshopify.com/admin/api/2024-01/graphql.json`,
             body: { query, variables },
-            headers: { 'Content-Type': 'application/json' },
+            uri: `https://${credentials.shopName}.myshopify.com/admin/api/${credentials.apiVersion}/graphql.json`,
             json: true,
-        });
+            headers: {
+                'X-Shopify-Access-Token': credentials.accessToken,
+                'Content-Type': 'application/json',
+            },
+        };
+        const response = await this.helpers.request(requestOptions);
         const options = [];
         if ((_c = (_b = (_a = response.data) === null || _a === void 0 ? void 0 : _a.product) === null || _b === void 0 ? void 0 : _b.variants) === null || _c === void 0 ? void 0 : _c.edges) {
             for (const edge of response.data.product.variants.edges) {
