@@ -613,6 +613,153 @@ class ShopifyGraphql {
                             description: 'Filter orders containing products with this SKU (exact match will be applied)',
                             placeholder: 'PRODUCT-SKU-123',
                         },
+                        // Phase 3: Payment & Advanced Filters (Tier 1)
+                        {
+                            displayName: 'Payment Gateway',
+                            name: 'gateway',
+                            type: 'options',
+                            default: '',
+                            description: 'Filter by payment gateway',
+                            options: [
+                                {
+                                    name: 'Any Gateway',
+                                    value: '',
+                                },
+                                {
+                                    name: 'Shopify Payments',
+                                    value: 'shopify_payments',
+                                },
+                                {
+                                    name: 'PayPal',
+                                    value: 'paypal',
+                                },
+                                {
+                                    name: 'Stripe',
+                                    value: 'stripe',
+                                },
+                                {
+                                    name: 'Square',
+                                    value: 'square',
+                                },
+                                {
+                                    name: 'Authorize.Net',
+                                    value: 'authorize_net',
+                                },
+                                {
+                                    name: 'Manual Payment',
+                                    value: 'manual',
+                                },
+                                {
+                                    name: 'Cash on Delivery',
+                                    value: 'cod',
+                                },
+                                {
+                                    name: 'Bank Transfer',
+                                    value: 'bank_transfer',
+                                },
+                                {
+                                    name: 'Gift Card',
+                                    value: 'gift_card',
+                                },
+                                {
+                                    name: 'Test Gateway',
+                                    value: 'bogus',
+                                },
+                            ],
+                        },
+                        {
+                            displayName: 'Test Orders',
+                            name: 'testOrders',
+                            type: 'options',
+                            default: '',
+                            description: 'Filter by test vs live orders',
+                            options: [
+                                {
+                                    name: 'All Orders',
+                                    value: '',
+                                },
+                                {
+                                    name: 'Live Orders Only',
+                                    value: 'false',
+                                },
+                                {
+                                    name: 'Test Orders Only',
+                                    value: 'true',
+                                },
+                            ],
+                        },
+                        {
+                            displayName: 'Customer Accepts Marketing',
+                            name: 'customerAcceptsMarketing',
+                            type: 'options',
+                            default: '',
+                            description: 'Filter by customer marketing preferences',
+                            options: [
+                                {
+                                    name: 'Any Preference',
+                                    value: '',
+                                },
+                                {
+                                    name: 'Accepts Marketing',
+                                    value: 'true',
+                                },
+                                {
+                                    name: 'Declined Marketing',
+                                    value: 'false',
+                                },
+                            ],
+                        },
+                        {
+                            displayName: 'Updated After',
+                            name: 'updatedAfter',
+                            type: 'dateTime',
+                            default: '',
+                            description: 'Filter orders updated after this date/time',
+                        },
+                        {
+                            displayName: 'Updated Before',
+                            name: 'updatedBefore',
+                            type: 'dateTime',
+                            default: '',
+                            description: 'Filter orders updated before this date/time',
+                        },
+                        {
+                            displayName: 'Delivery Method',
+                            name: 'deliveryMethod',
+                            type: 'options',
+                            default: '',
+                            description: 'Filter by delivery method',
+                            options: [
+                                {
+                                    name: 'Any Method',
+                                    value: '',
+                                },
+                                {
+                                    name: 'Shipping',
+                                    value: 'shipping',
+                                },
+                                {
+                                    name: 'Pickup',
+                                    value: 'pickup',
+                                },
+                                {
+                                    name: 'Local Delivery',
+                                    value: 'local_delivery',
+                                },
+                                {
+                                    name: 'Pickup Point',
+                                    value: 'pickup_point',
+                                },
+                                {
+                                    name: 'Retail',
+                                    value: 'retail',
+                                },
+                                {
+                                    name: 'None',
+                                    value: 'none',
+                                },
+                            ],
+                        },
                     ],
                 },
                 // Orders advanced options
@@ -1252,6 +1399,30 @@ class ShopifyGraphql {
                         // SKU filter (with quotes for string values)
                         if (orderFilters.sku) {
                             queryFilters.push(`sku:"${orderFilters.sku}"`);
+                        }
+                        // Phase 3: Payment & Advanced Filters (Tier 1)
+                        if (orderFilters.gateway) {
+                            queryFilters.push(`gateway:${orderFilters.gateway}`);
+                        }
+                        if (orderFilters.testOrders) {
+                            queryFilters.push(`test:${orderFilters.testOrders}`);
+                        }
+                        if (orderFilters.customerAcceptsMarketing) {
+                            queryFilters.push(`customer_accepts_marketing:${orderFilters.customerAcceptsMarketing}`);
+                        }
+                        if (orderFilters.deliveryMethod) {
+                            queryFilters.push(`delivery_method:${orderFilters.deliveryMethod}`);
+                        }
+                        // Advanced date filters (updated_at)
+                        if (orderFilters.updatedAfter) {
+                            // Convert to ISO format as per research specifications
+                            const afterDate = new Date(orderFilters.updatedAfter).toISOString();
+                            queryFilters.push(`updated_at:>='${afterDate}'`);
+                        }
+                        if (orderFilters.updatedBefore) {
+                            // Convert to ISO format as per research specifications
+                            const beforeDate = new Date(orderFilters.updatedBefore).toISOString();
+                            queryFilters.push(`updated_at:<='${beforeDate}'`);
                         }
                         const queryString = queryFilters.length > 0 ? queryFilters.join(' AND ') : '';
                         // Build GraphQL query with proper variable for query parameter (Claude's fix)
