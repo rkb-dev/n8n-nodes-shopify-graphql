@@ -706,6 +706,10 @@ export class ShopifyGraphql implements INodeType {
 						const includeTaxDetails = this.getNodeParameter('includeTaxDetails', i, false) as boolean;
 						const includeAddresses = this.getNodeParameter('includeAddresses', i, false) as boolean;
 						
+						// Get date filtering parameters
+						const createdAfter = this.getNodeParameter('createdAfter', i, '') as string;
+						const createdBefore = this.getNodeParameter('createdBefore', i, '') as string;
+						
 						// Get advanced options
 						const advancedOptions = this.getNodeParameter('ordersAdvancedOptions', i, {}) as any;
 						const lineItemsLimit = advancedOptions.lineItemsLimit || 250;
@@ -902,8 +906,46 @@ export class ShopifyGraphql implements INodeType {
 								}`;
 						}
 						
+						// Build date filter query string
+						let queryFilters: string[] = [];
+						if (createdAfter) {
+							queryFilters.push(`created_at:>${createdAfter}`);
+						}
+						if (createdBefore) {
+							queryFilters.push(`created_at:<${createdBefore}`);
+						}
+						const queryString = queryFilters.length > 0 ? queryFilters.join(' AND ') : '';
+						
 						// Build complete dynamic query for getAll
-						const query = `
+						const query = queryString ? `
+							query getOrders($first: Int!, $after: String, $query: String!) {
+								orders(first: $first, after: $after, query: $query) {
+									edges {
+										node {
+											id
+											name
+											email
+											phone
+											createdAt
+											updatedAt
+											processedAt
+											displayFinancialStatus
+											displayFulfillmentStatus
+											totalPriceSet {
+												shopMoney {
+													amount
+													currencyCode
+												}
+											}${customerFragment}${lineItemsFragment}${taxFragment}${addressesFragment}${shippingFragment}${fulfillmentFragment}${customAttributesFragment}${financialFragment}
+										}
+									}
+									pageInfo {
+										hasNextPage
+										endCursor
+									}
+								}
+							}
+						` : `
 							query getOrders($first: Int!, $after: String) {
 								orders(first: $first, after: $after) {
 									edges {
@@ -932,7 +974,10 @@ export class ShopifyGraphql implements INodeType {
 								}
 							}
 						`;
-						responseData = await shopifyGraphqlApiRequestAllItems.call(this, 'orders', query, {}, batchSize, maxItems);
+						
+						// Add query parameter if date filters are present
+						const variables = queryString ? { query: queryString } : {};
+						responseData = await shopifyGraphqlApiRequestAllItems.call(this, 'orders', query, variables, batchSize, maxItems);
 					}
 				} else if (resource === 'product') {
 					if (operation === 'get') {

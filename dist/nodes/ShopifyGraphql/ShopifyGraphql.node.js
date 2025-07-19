@@ -688,6 +688,9 @@ class ShopifyGraphql {
                         const includeLineItems = this.getNodeParameter('includeLineItems', i, false);
                         const includeTaxDetails = this.getNodeParameter('includeTaxDetails', i, false);
                         const includeAddresses = this.getNodeParameter('includeAddresses', i, false);
+                        // Get date filtering parameters
+                        const createdAfter = this.getNodeParameter('createdAfter', i, '');
+                        const createdBefore = this.getNodeParameter('createdBefore', i, '');
                         // Get advanced options
                         const advancedOptions = this.getNodeParameter('ordersAdvancedOptions', i, {});
                         const lineItemsLimit = advancedOptions.lineItemsLimit || 250;
@@ -875,8 +878,45 @@ class ShopifyGraphql {
 									}
 								}`;
                         }
+                        // Build date filter query string
+                        let queryFilters = [];
+                        if (createdAfter) {
+                            queryFilters.push(`created_at:>${createdAfter}`);
+                        }
+                        if (createdBefore) {
+                            queryFilters.push(`created_at:<${createdBefore}`);
+                        }
+                        const queryString = queryFilters.length > 0 ? queryFilters.join(' AND ') : '';
                         // Build complete dynamic query for getAll
-                        const query = `
+                        const query = queryString ? `
+							query getOrders($first: Int!, $after: String, $query: String!) {
+								orders(first: $first, after: $after, query: $query) {
+									edges {
+										node {
+											id
+											name
+											email
+											phone
+											createdAt
+											updatedAt
+											processedAt
+											displayFinancialStatus
+											displayFulfillmentStatus
+											totalPriceSet {
+												shopMoney {
+													amount
+													currencyCode
+												}
+											}${customerFragment}${lineItemsFragment}${taxFragment}${addressesFragment}${shippingFragment}${fulfillmentFragment}${customAttributesFragment}${financialFragment}
+										}
+									}
+									pageInfo {
+										hasNextPage
+										endCursor
+									}
+								}
+							}
+						` : `
 							query getOrders($first: Int!, $after: String) {
 								orders(first: $first, after: $after) {
 									edges {
@@ -905,7 +945,9 @@ class ShopifyGraphql {
 								}
 							}
 						`;
-                        responseData = await GenericFunctions_1.shopifyGraphqlApiRequestAllItems.call(this, 'orders', query, {}, batchSize, maxItems);
+                        // Add query parameter if date filters are present
+                        const variables = queryString ? { query: queryString } : {};
+                        responseData = await GenericFunctions_1.shopifyGraphqlApiRequestAllItems.call(this, 'orders', query, variables, batchSize, maxItems);
                     }
                 }
                 else if (resource === 'product') {
