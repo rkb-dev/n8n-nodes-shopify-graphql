@@ -132,6 +132,24 @@ export class ShopifyGraphql implements INodeType {
 						description: 'Get many products with smart batching',
 						action: 'Get many products',
 					},
+					{
+						name: 'Create',
+						value: 'create',
+						description: 'Create a new product',
+						action: 'Create a product',
+					},
+					{
+						name: 'Update',
+						value: 'update',
+						description: 'Update an existing product',
+						action: 'Update a product',
+					},
+					{
+						name: 'Delete',
+						value: 'delete',
+						description: 'Delete a product',
+						action: 'Delete a product',
+					},
 				],
 				default: 'get',
 			},
@@ -227,11 +245,113 @@ export class ShopifyGraphql implements INodeType {
 				displayOptions: {
 					show: {
 						resource: ['product'],
-						operation: ['get'],
+						operation: ['get', 'update', 'delete'],
 					},
 				},
 				default: '',
-				description: 'The ID of the product to retrieve',
+				description: 'The ID of the product to retrieve, update, or delete',
+			},
+			// Product Title field
+			{
+				displayName: 'Product Title',
+				name: 'productTitle',
+				type: 'string',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['product'],
+						operation: ['create'],
+					},
+				},
+				default: '',
+				description: 'The title of the product',
+			},
+			// Product Description field
+			{
+				displayName: 'Product Description',
+				name: 'productDescription',
+				type: 'string',
+				typeOptions: {
+					rows: 4,
+				},
+				displayOptions: {
+					show: {
+						resource: ['product'],
+						operation: ['create', 'update'],
+					},
+				},
+				default: '',
+				description: 'The description of the product (supports HTML)',
+			},
+			// Product Handle field
+			{
+				displayName: 'Product Handle',
+				name: 'productHandle',
+				type: 'string',
+				displayOptions: {
+					show: {
+						resource: ['product'],
+						operation: ['create', 'update'],
+					},
+				},
+				default: '',
+				description: 'The handle of the product (URL slug). If not provided, will be auto-generated from title.',
+			},
+			// Product Status field
+			{
+				displayName: 'Product Status',
+				name: 'productStatus',
+				type: 'options',
+				displayOptions: {
+					show: {
+						resource: ['product'],
+						operation: ['create', 'update'],
+					},
+				},
+				options: [
+					{
+						name: 'Active',
+						value: 'ACTIVE',
+					},
+					{
+						name: 'Draft',
+						value: 'DRAFT',
+					},
+					{
+						name: 'Archived',
+						value: 'ARCHIVED',
+					},
+				],
+				default: 'DRAFT',
+				description: 'The status of the product',
+			},
+			// Product Vendor field
+			{
+				displayName: 'Vendor',
+				name: 'productVendor',
+				type: 'string',
+				displayOptions: {
+					show: {
+						resource: ['product'],
+						operation: ['create', 'update'],
+					},
+				},
+				default: '',
+				description: 'The vendor or manufacturer of the product',
+			},
+			// Product Type field
+			{
+				displayName: 'Product Type',
+				name: 'productType',
+				type: 'string',
+				displayOptions: {
+					show: {
+						resource: ['product'],
+						operation: ['create', 'update'],
+					},
+				},
+				default: '',
+				description: 'The product type or category',
 			},
 			// Search query field
 			{
@@ -1553,6 +1673,129 @@ export class ShopifyGraphql implements INodeType {
 							}
 						`;
 						responseData = await shopifyGraphqlApiRequestAllItems.call(this, 'products', query, {}, batchSize, maxItems);
+					} else if (operation === 'create') {
+						const productTitle = this.getNodeParameter('productTitle', i) as string;
+						const productDescription = this.getNodeParameter('productDescription', i, '') as string;
+						const productHandle = this.getNodeParameter('productHandle', i, '') as string;
+						const productStatus = this.getNodeParameter('productStatus', i, 'DRAFT') as string;
+						const productVendor = this.getNodeParameter('productVendor', i, '') as string;
+						const productType = this.getNodeParameter('productType', i, '') as string;
+
+						// Build product input object
+						const productInput: any = {
+							title: productTitle,
+							status: productStatus,
+						};
+
+						if (productDescription) productInput.descriptionHtml = productDescription;
+						if (productHandle) productInput.handle = productHandle;
+						if (productVendor) productInput.vendor = productVendor;
+						if (productType) productInput.productType = productType;
+
+						const mutation = `
+							mutation productCreate($input: ProductInput!) {
+								productCreate(input: $input) {
+									product {
+										id
+										title
+										description
+										vendor
+										productType
+										tags
+										handle
+										status
+										createdAt
+										updatedAt
+									}
+									userErrors {
+										field
+										message
+									}
+								}
+							}
+						`;
+						const variables = { input: productInput };
+						const response = await shopifyGraphqlApiRequest.call(this, mutation, variables);
+						
+						if (response.data.productCreate.userErrors.length > 0) {
+							throw new Error(`Product creation failed: ${response.data.productCreate.userErrors.map((e: any) => e.message).join(', ')}`);
+						}
+						
+						responseData = response.data.productCreate.product;
+					} else if (operation === 'update') {
+						const productId = this.getNodeParameter('productId', i) as string;
+						const productDescription = this.getNodeParameter('productDescription', i, '') as string;
+						const productHandle = this.getNodeParameter('productHandle', i, '') as string;
+						const productStatus = this.getNodeParameter('productStatus', i, '') as string;
+						const productVendor = this.getNodeParameter('productVendor', i, '') as string;
+						const productType = this.getNodeParameter('productType', i, '') as string;
+
+						// Build product input object with only provided fields
+						const productInput: any = {
+							id: `gid://shopify/Product/${productId}`,
+						};
+
+						if (productDescription) productInput.descriptionHtml = productDescription;
+						if (productHandle) productInput.handle = productHandle;
+						if (productStatus) productInput.status = productStatus;
+						if (productVendor) productInput.vendor = productVendor;
+						if (productType) productInput.productType = productType;
+
+						const mutation = `
+							mutation productUpdate($input: ProductInput!) {
+								productUpdate(input: $input) {
+									product {
+										id
+										title
+										description
+										vendor
+										productType
+										tags
+										handle
+										status
+										createdAt
+										updatedAt
+									}
+									userErrors {
+										field
+										message
+									}
+								}
+							}
+						`;
+						const variables = { input: productInput };
+						const response = await shopifyGraphqlApiRequest.call(this, mutation, variables);
+						
+						if (response.data.productUpdate.userErrors.length > 0) {
+							throw new Error(`Product update failed: ${response.data.productUpdate.userErrors.map((e: any) => e.message).join(', ')}`);
+						}
+						
+						responseData = response.data.productUpdate.product;
+					} else if (operation === 'delete') {
+						const productId = this.getNodeParameter('productId', i) as string;
+						const mutation = `
+							mutation productDelete($input: ProductDeleteInput!) {
+								productDelete(input: $input) {
+									deletedProductId
+									userErrors {
+										field
+										message
+									}
+								}
+							}
+						`;
+						const variables = { input: { id: `gid://shopify/Product/${productId}` } };
+						const response = await shopifyGraphqlApiRequest.call(this, mutation, variables);
+						
+						if (response.data.productDelete.userErrors.length > 0) {
+							throw new Error(`Product deletion failed: ${response.data.productDelete.userErrors.map((e: any) => e.message).join(', ')}`);
+						}
+						
+						responseData = {
+							deletedProductId: response.data.productDelete.deletedProductId,
+							success: true,
+							message: `Product ${productId} deleted successfully`
+						};
 					}
 				}
 
