@@ -473,6 +473,146 @@ class ShopifyGraphql {
                             default: '',
                             description: 'Filter by customer email address',
                         },
+                        // Phase 2: Sales Intelligence Filters
+                        {
+                            displayName: 'Risk Level',
+                            name: 'riskLevel',
+                            type: 'options',
+                            default: '',
+                            description: 'Filter by fraud risk assessment level',
+                            options: [
+                                {
+                                    name: 'Any Risk Level',
+                                    value: '',
+                                },
+                                {
+                                    name: 'High Risk',
+                                    value: 'high',
+                                },
+                                {
+                                    name: 'Medium Risk',
+                                    value: 'medium',
+                                },
+                                {
+                                    name: 'Low Risk',
+                                    value: 'low',
+                                },
+                                {
+                                    name: 'No Risk',
+                                    value: 'none',
+                                },
+                                {
+                                    name: 'Pending Analysis',
+                                    value: 'pending',
+                                },
+                            ],
+                        },
+                        {
+                            displayName: 'Return Status',
+                            name: 'returnStatus',
+                            type: 'options',
+                            default: '',
+                            description: 'Filter by return processing status',
+                            options: [
+                                {
+                                    name: 'Any Return Status',
+                                    value: '',
+                                },
+                                {
+                                    name: 'No Return',
+                                    value: 'no_return',
+                                },
+                                {
+                                    name: 'Return Requested',
+                                    value: 'return_requested',
+                                },
+                                {
+                                    name: 'In Progress',
+                                    value: 'in_progress',
+                                },
+                                {
+                                    name: 'Inspection Complete',
+                                    value: 'inspection_complete',
+                                },
+                                {
+                                    name: 'Returned',
+                                    value: 'returned',
+                                },
+                                {
+                                    name: 'Return Failed',
+                                    value: 'return_failed',
+                                },
+                            ],
+                        },
+                        {
+                            displayName: 'Location ID',
+                            name: 'locationId',
+                            type: 'string',
+                            default: '',
+                            description: 'Filter by store location ID (numeric ID only, GID format will be applied automatically)',
+                            placeholder: '106311319881',
+                        },
+                        {
+                            displayName: 'Fulfillment Location ID',
+                            name: 'fulfillmentLocationId',
+                            type: 'string',
+                            default: '',
+                            description: 'Filter by fulfillment location ID (numeric ID only, GID format will be applied automatically)',
+                            placeholder: '106311319881',
+                        },
+                        {
+                            displayName: 'Sales Channel',
+                            name: 'salesChannel',
+                            type: 'options',
+                            default: '',
+                            description: 'Filter by sales channel',
+                            options: [
+                                {
+                                    name: 'Any Channel',
+                                    value: '',
+                                },
+                                {
+                                    name: 'Online Store',
+                                    value: '580111',
+                                },
+                                {
+                                    name: 'Point of Sale (POS)',
+                                    value: '129785',
+                                },
+                                {
+                                    name: 'Draft Orders',
+                                    value: '1354745',
+                                },
+                                {
+                                    name: 'Google & YouTube',
+                                    value: '1780363',
+                                },
+                                {
+                                    name: 'Facebook & Instagram',
+                                    value: '2329312',
+                                },
+                                {
+                                    name: 'Shop',
+                                    value: '3890849',
+                                },
+                                {
+                                    name: 'Headless',
+                                    value: '12875497473',
+                                },
+                                {
+                                    name: 'TikTok',
+                                    value: '4383523',
+                                },
+                            ],
+                        },
+                        {
+                            displayName: 'SKU',
+                            name: 'sku',
+                            type: 'string',
+                            default: '',
+                            description: 'Filter orders containing products with this SKU (exact match will be applied)',
+                            placeholder: 'PRODUCT-SKU-123',
+                        },
                     ],
                 },
                 // Orders advanced options
@@ -1088,6 +1228,30 @@ class ShopifyGraphql {
                         }
                         if (orderFilters.customerEmail) {
                             queryFilters.push(`email:${orderFilters.customerEmail}`);
+                        }
+                        // Phase 2: Sales Intelligence Filters
+                        if (orderFilters.riskLevel) {
+                            queryFilters.push(`risk_level:${orderFilters.riskLevel}`);
+                        }
+                        if (orderFilters.returnStatus) {
+                            queryFilters.push(`return_status:${orderFilters.returnStatus}`);
+                        }
+                        // Location filters (with GID format)
+                        if (orderFilters.locationId) {
+                            const locationGid = `gid://shopify/Location/${orderFilters.locationId}`;
+                            queryFilters.push(`location_id:${locationGid}`);
+                        }
+                        if (orderFilters.fulfillmentLocationId) {
+                            const fulfillmentLocationGid = `gid://shopify/Location/${orderFilters.fulfillmentLocationId}`;
+                            queryFilters.push(`fulfillment_location_id:${fulfillmentLocationGid}`);
+                        }
+                        // Sales channel filter (with App ID format)
+                        if (orderFilters.salesChannel) {
+                            queryFilters.push(`sales_channel:'${orderFilters.salesChannel}'`);
+                        }
+                        // SKU filter (with quotes for string values)
+                        if (orderFilters.sku) {
+                            queryFilters.push(`sku:"${orderFilters.sku}"`);
                         }
                         const queryString = queryFilters.length > 0 ? queryFilters.join(' AND ') : '';
                         // Build GraphQL query with proper variable for query parameter (Claude's fix)
