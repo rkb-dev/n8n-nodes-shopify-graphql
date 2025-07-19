@@ -3,29 +3,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.execute = exports.description = void 0;
 const GenericFunctions_1 = require("../../GenericFunctions");
 exports.description = [
-    // Product search input field
-    {
-        displayName: 'Search Products',
-        name: 'searchTerm',
-        type: 'string',
-        default: '',
-        placeholder: 'Search by product title, handle, or vendor...',
-        displayOptions: {
-            show: {
-                resource: ['product'],
-                operation: ['update'],
-            },
-        },
-        description: 'Enter search term to find products',
-    },
-    // Product selection from search results
+    // Simple product selection
     {
         displayName: 'Product',
         name: 'productId',
         type: 'options',
         typeOptions: {
-            loadOptionsMethod: 'searchProducts',
-            loadOptionsDependsOn: ['searchTerm'],
+            loadOptionsMethod: 'loadProducts',
         },
         required: true,
         displayOptions: {
@@ -35,7 +19,7 @@ exports.description = [
             },
         },
         default: '',
-        description: 'Select product from search results',
+        description: 'Select the product to update',
     },
     // Dynamic Metafield Editing (Google Sheets pattern)
     {

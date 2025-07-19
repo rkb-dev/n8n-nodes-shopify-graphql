@@ -2,29 +2,13 @@ import type { IExecuteFunctions, INodeProperties } from 'n8n-workflow';
 import { shopifyGraphqlApiRequest } from '../../GenericFunctions';
 
 export const description: INodeProperties[] = [
-	// Product search input field
-	{
-		displayName: 'Search Products',
-		name: 'searchTerm',
-		type: 'string',
-		default: '',
-		placeholder: 'Search by product title, handle, or vendor...',
-		displayOptions: {
-			show: {
-				resource: ['product'],
-				operation: ['update'],
-			},
-		},
-		description: 'Enter search term to find products',
-	},
-	// Product selection from search results
+	// Simple product selection
 	{
 		displayName: 'Product',
 		name: 'productId',
 		type: 'options',
 		typeOptions: {
-			loadOptionsMethod: 'searchProducts',
-			loadOptionsDependsOn: ['searchTerm'],
+			loadOptionsMethod: 'loadProducts',
 		},
 		required: true,
 		displayOptions: {
@@ -34,7 +18,7 @@ export const description: INodeProperties[] = [
 			},
 		},
 		default: '',
-		description: 'Select product from search results',
+		description: 'Select the product to update',
 	},
 	// Dynamic Metafield Editing (Google Sheets pattern)
 	{

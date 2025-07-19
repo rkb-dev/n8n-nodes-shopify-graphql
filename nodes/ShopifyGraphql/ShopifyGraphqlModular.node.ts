@@ -33,7 +33,6 @@ import {
 	loadProductVariants,
 	loadProductTypes,
 	loadVendors,
-	searchProducts,
 	getMetafieldMappingColumns,
 } from './methods';
 
@@ -132,9 +131,6 @@ export class ShopifyGraphqlModular implements INodeType {
 			},
 			
 			// Google Sheets-Style Dynamic Methods
-			async searchProducts(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-				return await searchProducts.call(this);
-			},
 			async getMetafieldMappingColumns(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				return await getMetafieldMappingColumns.call(this);
 			},

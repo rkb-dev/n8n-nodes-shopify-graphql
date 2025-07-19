@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMetafieldMappingColumns = exports.searchProducts = exports.loadVendors = exports.loadProductTypes = exports.loadProductVariants = exports.loadLocations = exports.loadCollections = exports.loadOrders = exports.loadCustomers = exports.loadProducts = exports.loadMetafields = exports.loadOptionsMethods = void 0;
+exports.getMetafieldMappingColumns = exports.loadVendors = exports.loadProductTypes = exports.loadProductVariants = exports.loadLocations = exports.loadCollections = exports.loadOrders = exports.loadCustomers = exports.loadProducts = exports.loadMetafields = exports.loadOptionsMethods = void 0;
 const loadMetafields_1 = require("./loadMetafields");
 const loadProducts_1 = require("./loadProducts");
 const loadCustomers_1 = require("./loadCustomers");
@@ -10,7 +10,6 @@ const loadLocations_1 = require("./loadLocations");
 const loadProductVariants_1 = require("./loadProductVariants");
 const loadProductTypes_1 = require("./loadProductTypes");
 const loadVendors_1 = require("./loadVendors");
-const searchProducts_1 = require("./searchProducts");
 const getMetafieldMappingColumns_1 = require("./getMetafieldMappingColumns");
 // Export all dynamic loading methods for n8n loadOptions
 exports.loadOptionsMethods = {
@@ -26,9 +25,7 @@ exports.loadOptionsMethods = {
     loadProductTypes: loadProductTypes_1.loadProductTypes,
     loadVendors: loadVendors_1.loadVendors,
     // Google Sheets-Style Search Methods (Phase 1 - Dynamic UX)
-    searchProducts: searchProducts_1.searchProducts,
-    getMetafieldMappingColumns: // resourceLocator search method for large product catalogs
-    getMetafieldMappingColumns_1.getMetafieldMappingColumns, // resourceMapper method for dynamic metafield discovery
+    getMetafieldMappingColumns: getMetafieldMappingColumns_1.getMetafieldMappingColumns, // resourceMapper method for dynamic metafield discovery
     // Low Priority - Advanced Features (Phase 3)
     // loadShippingZones,
     // loadTaxSettings,
@@ -52,7 +49,5 @@ var loadProductTypes_2 = require("./loadProductTypes");
 Object.defineProperty(exports, "loadProductTypes", { enumerable: true, get: function () { return loadProductTypes_2.loadProductTypes; } });
 var loadVendors_2 = require("./loadVendors");
 Object.defineProperty(exports, "loadVendors", { enumerable: true, get: function () { return loadVendors_2.loadVendors; } });
-var searchProducts_2 = require("./searchProducts");
-Object.defineProperty(exports, "searchProducts", { enumerable: true, get: function () { return searchProducts_2.searchProducts; } });
 var getMetafieldMappingColumns_2 = require("./getMetafieldMappingColumns");
 Object.defineProperty(exports, "getMetafieldMappingColumns", { enumerable: true, get: function () { return getMetafieldMappingColumns_2.getMetafieldMappingColumns; } });

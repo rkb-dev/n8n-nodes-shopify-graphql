@@ -7,7 +7,6 @@ import { loadLocations } from './loadLocations';
 import { loadProductVariants } from './loadProductVariants';
 import { loadProductTypes } from './loadProductTypes';
 import { loadVendors } from './loadVendors';
-import { searchProducts } from './searchProducts';
 import { getMetafieldMappingColumns } from './getMetafieldMappingColumns';
 export declare const loadOptionsMethods: {
     loadProducts: typeof loadProducts;
@@ -19,7 +18,6 @@ export declare const loadOptionsMethods: {
     loadProductVariants: typeof loadProductVariants;
     loadProductTypes: typeof loadProductTypes;
     loadVendors: typeof loadVendors;
-    searchProducts: typeof searchProducts;
     getMetafieldMappingColumns: typeof getMetafieldMappingColumns;
 };
 export type LoadOptionsMethodName = keyof typeof loadOptionsMethods;
@@ -32,5 +30,4 @@ export { loadLocations } from './loadLocations';
 export { loadProductVariants } from './loadProductVariants';
 export { loadProductTypes } from './loadProductTypes';
 export { loadVendors } from './loadVendors';
-export { searchProducts } from './searchProducts';
 export { getMetafieldMappingColumns } from './getMetafieldMappingColumns';
