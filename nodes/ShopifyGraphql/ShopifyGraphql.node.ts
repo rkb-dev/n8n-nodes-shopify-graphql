@@ -906,52 +906,24 @@ export class ShopifyGraphql implements INodeType {
 								}`;
 						}
 						
-						// Build date filter query string
+						// Build date filter query string (Shopify format: created_at:>YYYY-MM-DD)
 						let queryFilters: string[] = [];
 						if (createdAfter) {
-							// Convert n8n date format to Shopify ISO format
-							const afterDate = new Date(createdAfter).toISOString();
-							queryFilters.push(`created_at:>=${afterDate}`);
+							// Extract date part only (YYYY-MM-DD) from n8n datetime
+							const afterDate = createdAfter.split(' ')[0];
+							queryFilters.push(`created_at:>${afterDate}`);
 						}
 						if (createdBefore) {
-							// Convert n8n date format to Shopify ISO format
-							const beforeDate = new Date(createdBefore).toISOString();
-							queryFilters.push(`created_at:<=${beforeDate}`);
+							// Extract date part only (YYYY-MM-DD) from n8n datetime
+							const beforeDate = createdBefore.split(' ')[0];
+							queryFilters.push(`created_at:<${beforeDate}`);
 						}
 						const queryString = queryFilters.length > 0 ? queryFilters.join(' AND ') : '';
 						
-						// Build complete dynamic query for getAll
-						const query = queryString ? `
-							query getOrders($first: Int!, $after: String, $query: String!) {
-								orders(first: $first, after: $after, query: $query) {
-									edges {
-										node {
-											id
-											name
-											email
-											phone
-											createdAt
-											updatedAt
-											processedAt
-											displayFinancialStatus
-											displayFulfillmentStatus
-											totalPriceSet {
-												shopMoney {
-													amount
-													currencyCode
-												}
-											}${customerFragment}${lineItemsFragment}${taxFragment}${addressesFragment}${shippingFragment}${fulfillmentFragment}${customAttributesFragment}${financialFragment}
-										}
-									}
-									pageInfo {
-										hasNextPage
-										endCursor
-									}
-								}
-							}
-						` : `
+						// Build complete dynamic query with embedded filter (Shopify pattern)
+						const query = `
 							query getOrders($first: Int!, $after: String) {
-								orders(first: $first, after: $after) {
+								orders(first: $first, after: $after${queryString ? `, query: "${queryString}"` : ''}) {
 									edges {
 										node {
 											id
@@ -978,10 +950,10 @@ export class ShopifyGraphql implements INodeType {
 								}
 							}
 						`;
-						
-						// Add query parameter if date filters are present
-						const variables = queryString ? { query: queryString } : {};
-						responseData = await shopifyGraphqlApiRequestAllItems.call(this, 'orders', query, variables, batchSize, maxItems);
+								
+								// No variables needed since query filter is embedded directly
+								const variables = {};
+								responseData = await shopifyGraphqlApiRequestAllItems.call(this, 'orders', query, variables, batchSize, maxItems);
 					}
 				} else if (resource === 'product') {
 					if (operation === 'get') {
