@@ -878,47 +878,23 @@ class ShopifyGraphql {
 									}
 								}`;
                         }
-                        // Build date filter query string
+                        // Build date filter query string (Shopify format: created_at:>=YYYY-MM-DD)
                         let queryFilters = [];
                         if (createdAfter) {
-                            queryFilters.push(`created_at:>${createdAfter}`);
+                            // Extract date part only (YYYY-MM-DD) from n8n datetime
+                            const afterDate = createdAfter.split(' ')[0];
+                            queryFilters.push(`created_at:>=${afterDate}`);
                         }
                         if (createdBefore) {
-                            queryFilters.push(`created_at:<${createdBefore}`);
+                            // Extract date part only (YYYY-MM-DD) from n8n datetime
+                            const beforeDate = createdBefore.split(' ')[0];
+                            queryFilters.push(`created_at:<=${beforeDate}`);
                         }
                         const queryString = queryFilters.length > 0 ? queryFilters.join(' AND ') : '';
-                        // Build complete dynamic query for getAll
-                        const query = queryString ? `
-							query getOrders($first: Int!, $after: String, $query: String!) {
-								orders(first: $first, after: $after, query: $query) {
-									edges {
-										node {
-											id
-											name
-											email
-											phone
-											createdAt
-											updatedAt
-											processedAt
-											displayFinancialStatus
-											displayFulfillmentStatus
-											totalPriceSet {
-												shopMoney {
-													amount
-													currencyCode
-												}
-											}${customerFragment}${lineItemsFragment}${taxFragment}${addressesFragment}${shippingFragment}${fulfillmentFragment}${customAttributesFragment}${financialFragment}
-										}
-									}
-									pageInfo {
-										hasNextPage
-										endCursor
-									}
-								}
-							}
-						` : `
+                        // Build complete dynamic query with embedded filter (Shopify pattern)
+                        const query = `
 							query getOrders($first: Int!, $after: String) {
-								orders(first: $first, after: $after) {
+								orders(first: $first, after: $after${queryString ? `, query: "${queryString}"` : ''}) {
 									edges {
 										node {
 											id
@@ -945,8 +921,8 @@ class ShopifyGraphql {
 								}
 							}
 						`;
-                        // Add query parameter if date filters are present
-                        const variables = queryString ? { query: queryString } : {};
+                        // No variables needed since query filter is embedded directly
+                        const variables = {};
                         responseData = await GenericFunctions_1.shopifyGraphqlApiRequestAllItems.call(this, 'orders', query, variables, batchSize, maxItems);
                     }
                 }

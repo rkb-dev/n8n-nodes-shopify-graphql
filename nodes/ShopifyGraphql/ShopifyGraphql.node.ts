@@ -906,17 +906,17 @@ export class ShopifyGraphql implements INodeType {
 								}`;
 						}
 						
-						// Build date filter query string (Shopify format: created_at:>YYYY-MM-DD)
+						// Build date filter query string (Shopify format: created_at:>=YYYY-MM-DD)
 						let queryFilters: string[] = [];
 						if (createdAfter) {
 							// Extract date part only (YYYY-MM-DD) from n8n datetime
 							const afterDate = createdAfter.split(' ')[0];
-							queryFilters.push(`created_at:>${afterDate}`);
+							queryFilters.push(`created_at:>=${afterDate}`);
 						}
 						if (createdBefore) {
 							// Extract date part only (YYYY-MM-DD) from n8n datetime
 							const beforeDate = createdBefore.split(' ')[0];
-							queryFilters.push(`created_at:<${beforeDate}`);
+							queryFilters.push(`created_at:<=${beforeDate}`);
 						}
 						const queryString = queryFilters.length > 0 ? queryFilters.join(' AND ') : '';
 						
