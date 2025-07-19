@@ -891,10 +891,10 @@ class ShopifyGraphql {
                             queryFilters.push(`created_at:<=${beforeDate}`);
                         }
                         const queryString = queryFilters.length > 0 ? queryFilters.join(' AND ') : '';
-                        // Build complete dynamic query with embedded filter (Shopify pattern)
+                        // Build GraphQL query with proper variable for query parameter (Claude's fix)
                         const query = `
-							query getOrders($first: Int!, $after: String) {
-								orders(first: $first, after: $after${queryString ? `, query: "${queryString}"` : ''}) {
+							query getOrders($first: Int!, $after: String, $query: String) {
+								orders(first: $first, after: $after, query: $query) {
 									edges {
 										node {
 											id
@@ -921,8 +921,11 @@ class ShopifyGraphql {
 								}
 							}
 						`;
-                        // No variables needed since query filter is embedded directly
+                        // Pass query string as GraphQL variable (proper n8n/GraphQL pattern)
                         const variables = {};
+                        if (queryString) {
+                            variables.query = queryString;
+                        }
                         responseData = await GenericFunctions_1.shopifyGraphqlApiRequestAllItems.call(this, 'orders', query, variables, batchSize, maxItems);
                     }
                 }
