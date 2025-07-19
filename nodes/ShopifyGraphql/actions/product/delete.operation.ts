@@ -2,11 +2,14 @@ import type { IExecuteFunctions, INodeProperties } from 'n8n-workflow';
 import { shopifyGraphqlApiRequest } from '../../GenericFunctions';
 
 export const description: INodeProperties[] = [
-	// Product ID field for delete operation
+	// Product selection with dynamic loading
 	{
-		displayName: 'Product ID',
+		displayName: 'Product',
 		name: 'productId',
-		type: 'string',
+		type: 'options',
+		typeOptions: {
+			loadOptionsMethod: 'loadProducts',
+		},
 		required: true,
 		displayOptions: {
 			show: {
@@ -15,7 +18,22 @@ export const description: INodeProperties[] = [
 			},
 		},
 		default: '',
-		description: 'The ID of the product to delete',
+		description: 'Select product to delete from your Shopify store',
+	},
+	// Manual Product ID (fallback option)
+	{
+		displayName: 'Manual Product ID',
+		name: 'manualProductId',
+		type: 'string',
+		displayOptions: {
+			show: {
+				resource: ['product'],
+				operation: ['delete'],
+				productId: ['__manual__'],
+			},
+		},
+		default: '',
+		description: 'Enter product ID manually if not found in dropdown',
 	},
 ];
 

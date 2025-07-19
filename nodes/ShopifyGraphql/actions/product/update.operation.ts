@@ -2,11 +2,14 @@ import type { IExecuteFunctions, INodeProperties } from 'n8n-workflow';
 import { shopifyGraphqlApiRequest } from '../../GenericFunctions';
 
 export const description: INodeProperties[] = [
-	// Product ID field for update operation
+	// Product selection with dynamic loading
 	{
-		displayName: 'Product ID',
+		displayName: 'Product',
 		name: 'productId',
-		type: 'string',
+		type: 'options',
+		typeOptions: {
+			loadOptionsMethod: 'loadProducts',
+		},
 		required: true,
 		displayOptions: {
 			show: {
@@ -15,7 +18,22 @@ export const description: INodeProperties[] = [
 			},
 		},
 		default: '',
-		description: 'The ID of the product to update',
+		description: 'Select product to update from your Shopify store',
+	},
+	// Manual Product ID (fallback option)
+	{
+		displayName: 'Manual Product ID',
+		name: 'manualProductId',
+		type: 'string',
+		displayOptions: {
+			show: {
+				resource: ['product'],
+				operation: ['update'],
+				productId: ['__manual__'],
+			},
+		},
+		default: '',
+		description: 'Enter product ID manually if not found in dropdown',
 	},
 	// Product Description field
 	{
@@ -110,7 +128,21 @@ export async function execute(
 	this: IExecuteFunctions,
 	i: number,
 ): Promise<any> {
-	const productId = this.getNodeParameter('productId', i) as string;
+	// Handle dynamic product selection with manual fallback
+	let productId = this.getNodeParameter('productId', i) as string;
+	if (productId === '__manual__') {
+		productId = this.getNodeParameter('manualProductId', i) as string;
+	}
+	
+	// Validate product ID
+	if (!productId) {
+		throw new Error('Product ID is required');
+	}
+	
+	// Ensure product ID is in GID format
+	if (!productId.startsWith('gid://shopify/Product/')) {
+		productId = `gid://shopify/Product/${productId}`;
+	}
 	const productDescription = this.getNodeParameter('productDescription', i, '') as string;
 	const productHandle = this.getNodeParameter('productHandle', i, '') as string;
 	const productStatus = this.getNodeParameter('productStatus', i, '') as string;

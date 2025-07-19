@@ -104,6 +104,38 @@ export const description: INodeProperties[] = [
 		default: '',
 		description: 'The type or category of the product',
 	},
+	// Collection selection with dynamic loading
+	{
+		displayName: 'Add to Collection',
+		name: 'collectionId',
+		type: 'options',
+		typeOptions: {
+			loadOptionsMethod: 'loadCollections',
+		},
+		displayOptions: {
+			show: {
+				resource: ['product'],
+				operation: ['create'],
+			},
+		},
+		default: '',
+		description: 'Select collection to add this product to (optional)',
+	},
+	// Manual Collection ID (fallback option)
+	{
+		displayName: 'Manual Collection ID',
+		name: 'manualCollectionId',
+		type: 'string',
+		displayOptions: {
+			show: {
+				resource: ['product'],
+				operation: ['create'],
+				collectionId: ['__manual__'],
+			},
+		},
+		default: '',
+		description: 'Enter collection ID manually if not found in dropdown',
+	},
 ];
 
 export async function execute(
@@ -116,6 +148,17 @@ export async function execute(
 	const productStatus = this.getNodeParameter('productStatus', i, 'DRAFT') as string;
 	const productVendor = this.getNodeParameter('productVendor', i, '') as string;
 	const productType = this.getNodeParameter('productType', i, '') as string;
+	
+	// Handle dynamic collection selection with manual fallback
+	let collectionId = this.getNodeParameter('collectionId', i, '') as string;
+	if (collectionId === '__manual__') {
+		collectionId = this.getNodeParameter('manualCollectionId', i, '') as string;
+	}
+	
+	// Ensure collection ID is in GID format if provided
+	if (collectionId && !collectionId.startsWith('gid://shopify/Collection/')) {
+		collectionId = `gid://shopify/Collection/${collectionId}`;
+	}
 
 	// Get advanced features (these will be moved to separate fields later)
 	const productVariants = this.getNodeParameter('productVariants', i, {}) as any;
