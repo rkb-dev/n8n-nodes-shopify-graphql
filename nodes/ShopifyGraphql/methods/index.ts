@@ -8,7 +8,7 @@ import { loadProductVariants } from './loadProductVariants';
 import { loadProductTypes } from './loadProductTypes';
 import { loadVendors } from './loadVendors';
 
-import { getMetafieldMappingColumns } from './getMetafieldMappingColumns';
+
 
 // Export all dynamic loading methods for n8n loadOptions
 export const loadOptionsMethods = {
@@ -25,8 +25,7 @@ export const loadOptionsMethods = {
 	loadProductTypes,
 	loadVendors,
 	
-	// Google Sheets-Style Search Methods (Phase 1 - Dynamic UX)
-	getMetafieldMappingColumns, // resourceMapper method for dynamic metafield discovery
+
 	
 	// Low Priority - Advanced Features (Phase 3)
 	// loadShippingZones,
@@ -45,4 +44,4 @@ export { loadLocations } from './loadLocations';
 export { loadProductVariants } from './loadProductVariants';
 export { loadProductTypes } from './loadProductTypes';
 export { loadVendors } from './loadVendors';
-export { getMetafieldMappingColumns } from './getMetafieldMappingColumns';
+
