@@ -353,6 +353,278 @@ export class ShopifyGraphql implements INodeType {
 				default: '',
 				description: 'The product type or category',
 			},
+			// Product Variants Collection
+			{
+				displayName: 'Product Variants',
+				name: 'productVariants',
+				type: 'fixedCollection',
+				typeOptions: {
+					multipleValues: true,
+				},
+				displayOptions: {
+					show: {
+						resource: ['product'],
+						operation: ['create', 'update'],
+					},
+				},
+				default: {},
+				description: 'Product variants with pricing, inventory, and options',
+				options: [
+					{
+						name: 'variant',
+						displayName: 'Variant',
+						values: [
+							{
+								displayName: 'Title',
+								name: 'title',
+								type: 'string',
+								default: '',
+								description: 'Variant title (e.g., "Small / Red")',
+							},
+							{
+								displayName: 'SKU',
+								name: 'sku',
+								type: 'string',
+								default: '',
+								description: 'Stock Keeping Unit identifier',
+							},
+							{
+								displayName: 'Price',
+								name: 'price',
+								type: 'string',
+								default: '',
+								description: 'Variant price (e.g., "19.99")',
+							},
+							{
+								displayName: 'Compare At Price',
+								name: 'compareAtPrice',
+								type: 'string',
+								default: '',
+								description: 'Original price for comparison (crossed out price)',
+							},
+							{
+								displayName: 'Inventory Quantity',
+								name: 'inventoryQuantity',
+								type: 'number',
+								default: 0,
+								description: 'Available inventory quantity',
+							},
+							{
+								displayName: 'Track Inventory',
+								name: 'inventoryManagement',
+								type: 'options',
+								options: [
+									{
+										name: 'Shopify',
+										value: 'SHOPIFY',
+									},
+									{
+										name: 'Not Tracked',
+										value: 'NOT_MANAGED',
+									},
+								],
+								default: 'NOT_MANAGED',
+								description: 'How inventory is tracked for this variant',
+							},
+							{
+								displayName: 'Weight',
+								name: 'weight',
+								type: 'number',
+								default: 0,
+								description: 'Variant weight in grams',
+							},
+							{
+								displayName: 'Requires Shipping',
+								name: 'requiresShipping',
+								type: 'boolean',
+								default: true,
+								description: 'Whether this variant requires shipping',
+							},
+							{
+								displayName: 'Taxable',
+								name: 'taxable',
+								type: 'boolean',
+								default: true,
+								description: 'Whether this variant is subject to taxes',
+							},
+						],
+					},
+				],
+			},
+			// Product Images Collection
+			{
+				displayName: 'Product Images',
+				name: 'productImages',
+				type: 'fixedCollection',
+				typeOptions: {
+					multipleValues: true,
+				},
+				displayOptions: {
+					show: {
+						resource: ['product'],
+						operation: ['create', 'update'],
+					},
+				},
+				default: {},
+				description: 'Product images with alt text and positioning',
+				options: [
+					{
+						name: 'image',
+						displayName: 'Image',
+						values: [
+							{
+								displayName: 'Image URL',
+								name: 'src',
+								type: 'string',
+								required: true,
+								default: '',
+								description: 'URL of the image to upload',
+							},
+							{
+								displayName: 'Alt Text',
+								name: 'altText',
+								type: 'string',
+								default: '',
+								description: 'Alternative text for accessibility',
+							},
+						],
+					},
+				],
+			},
+			// Product Metafields Collection
+			{
+				displayName: 'Product Metafields',
+				name: 'productMetafields',
+				type: 'fixedCollection',
+				typeOptions: {
+					multipleValues: true,
+				},
+				displayOptions: {
+					show: {
+						resource: ['product'],
+						operation: ['create', 'update'],
+					},
+				},
+				default: {},
+				description: 'Custom metafields for additional product data',
+				options: [
+					{
+						name: 'metafield',
+						displayName: 'Metafield',
+						values: [
+							{
+								displayName: 'Namespace',
+								name: 'namespace',
+								type: 'string',
+								required: true,
+								default: 'custom',
+								description: 'Metafield namespace (e.g., "custom", "global")',
+							},
+							{
+								displayName: 'Key',
+								name: 'key',
+								type: 'string',
+								required: true,
+								default: '',
+								description: 'Metafield key identifier',
+							},
+							{
+								displayName: 'Value',
+								name: 'value',
+								type: 'string',
+								required: true,
+								default: '',
+								description: 'Metafield value',
+							},
+							{
+								displayName: 'Type',
+								name: 'type',
+								type: 'options',
+								options: [
+									{
+										name: 'Single Line Text',
+										value: 'single_line_text_field',
+									},
+									{
+										name: 'Multi Line Text',
+										value: 'multi_line_text_field',
+									},
+									{
+										name: 'Number Integer',
+										value: 'number_integer',
+									},
+									{
+										name: 'Number Decimal',
+										value: 'number_decimal',
+									},
+									{
+										name: 'Boolean',
+										value: 'boolean',
+									},
+									{
+										name: 'Date',
+										value: 'date',
+									},
+									{
+										name: 'Date Time',
+										value: 'date_time',
+									},
+									{
+										name: 'URL',
+										value: 'url',
+									},
+									{
+										name: 'JSON',
+										value: 'json',
+									},
+								],
+								default: 'single_line_text_field',
+								description: 'Metafield data type',
+							},
+						],
+					},
+				],
+			},
+			// SEO and Marketing Fields
+			{
+				displayName: 'SEO Settings',
+				name: 'seoSettings',
+				type: 'collection',
+				placeholder: 'Add SEO Field',
+				default: {},
+				displayOptions: {
+					show: {
+						resource: ['product'],
+						operation: ['create', 'update'],
+					},
+				},
+				options: [
+					{
+						displayName: 'SEO Title',
+						name: 'seoTitle',
+						type: 'string',
+						default: '',
+						description: 'SEO title for search engines',
+					},
+					{
+						displayName: 'SEO Description',
+						name: 'seoDescription',
+						type: 'string',
+						typeOptions: {
+							rows: 3,
+						},
+						default: '',
+						description: 'SEO meta description',
+					},
+					{
+						displayName: 'Product Tags',
+						name: 'tags',
+						type: 'string',
+						default: '',
+						description: 'Comma-separated product tags',
+					},
+				],
+			},
 			// Search query field
 			{
 				displayName: 'Search Query',
@@ -407,6 +679,12 @@ export class ShopifyGraphql implements INodeType {
 				type: 'collection',
 				placeholder: 'Add Field',
 				default: {},
+				displayOptions: {
+					show: {
+						resource: ['customer', 'order', 'product'],
+						operation: ['getAll', 'search'],
+					},
+				},
 				options: [
 					{
 						displayName: 'Include Metafields',
@@ -1681,6 +1959,12 @@ export class ShopifyGraphql implements INodeType {
 						const productVendor = this.getNodeParameter('productVendor', i, '') as string;
 						const productType = this.getNodeParameter('productType', i, '') as string;
 
+						// Get advanced features
+						const productVariants = this.getNodeParameter('productVariants', i, {}) as any;
+						const productImages = this.getNodeParameter('productImages', i, {}) as any;
+						const productMetafields = this.getNodeParameter('productMetafields', i, {}) as any;
+						const seoSettings = this.getNodeParameter('seoSettings', i, {}) as any;
+
 						// Build product input object
 						const productInput: any = {
 							title: productTitle,
@@ -1691,6 +1975,59 @@ export class ShopifyGraphql implements INodeType {
 						if (productHandle) productInput.handle = productHandle;
 						if (productVendor) productInput.vendor = productVendor;
 						if (productType) productInput.productType = productType;
+
+						// Add SEO settings
+						if (seoSettings.seoTitle || seoSettings.seoDescription) {
+							productInput.seo = {};
+							if (seoSettings.seoTitle) productInput.seo.title = seoSettings.seoTitle;
+							if (seoSettings.seoDescription) productInput.seo.description = seoSettings.seoDescription;
+						}
+
+						// Add tags
+						if (seoSettings.tags) {
+							productInput.tags = seoSettings.tags.split(',').map((tag: string) => tag.trim());
+						}
+
+						// Add variants
+						if (productVariants.variant && productVariants.variant.length > 0) {
+							productInput.variants = productVariants.variant.map((variant: any) => {
+								const variantInput: any = {};
+								if (variant.title) variantInput.title = variant.title;
+								if (variant.sku) variantInput.sku = variant.sku;
+								if (variant.price) variantInput.price = variant.price;
+								if (variant.compareAtPrice) variantInput.compareAtPrice = variant.compareAtPrice;
+								if (variant.inventoryQuantity !== undefined) variantInput.inventoryQuantities = [{
+									locationId: 'gid://shopify/Location/main',
+									availableQuantity: variant.inventoryQuantity
+								}];
+								if (variant.inventoryManagement) variantInput.inventoryManagement = variant.inventoryManagement;
+								if (variant.weight) variantInput.weight = variant.weight;
+								if (variant.requiresShipping !== undefined) variantInput.requiresShipping = variant.requiresShipping;
+								if (variant.taxable !== undefined) variantInput.taxable = variant.taxable;
+								return variantInput;
+							});
+						}
+
+						// Add images
+						if (productImages.image && productImages.image.length > 0) {
+							productInput.images = productImages.image.map((image: any) => {
+								const imageInput: any = {
+									src: image.src
+								};
+								if (image.altText) imageInput.altText = image.altText;
+								return imageInput;
+							});
+						}
+
+						// Add metafields
+						if (productMetafields.metafield && productMetafields.metafield.length > 0) {
+							productInput.metafields = productMetafields.metafield.map((metafield: any) => ({
+								namespace: metafield.namespace,
+								key: metafield.key,
+								value: metafield.value,
+								type: metafield.type
+							}));
+						}
 
 						const mutation = `
 							mutation productCreate($input: ProductInput!) {
