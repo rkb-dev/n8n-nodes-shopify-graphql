@@ -120,6 +120,13 @@ class ShopifyGraphqlModular {
                 async loadVendors() {
                     return await methods_1.loadVendors.call(this);
                 },
+                // Google Sheets-Style Dynamic Methods
+                async searchProducts() {
+                    return await methods_1.searchProducts.call(this);
+                },
+                async getMetafieldMappingColumns() {
+                    return await methods_1.getMetafieldMappingColumns.call(this);
+                },
             },
         };
     }

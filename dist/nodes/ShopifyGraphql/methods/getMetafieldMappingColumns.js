@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMetafieldMappingColumns = void 0;
+exports.getMetafieldTypeIcon = exports.getMetafieldMappingColumns = void 0;
 /**
  * Get metafield mapping columns for a specific product
  * Implements Google Sheets-style dynamic field discovery for metafields
@@ -231,3 +231,4 @@ function getMetafieldTypeIcon(type) {
     };
     return typeMap[type] || '📋';
 }
+exports.getMetafieldTypeIcon = getMetafieldTypeIcon;

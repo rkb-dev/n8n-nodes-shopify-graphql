@@ -226,7 +226,7 @@ export async function getMetafieldMappingColumns(this: ILoadOptionsFunctions): P
  * Get appropriate icon for metafield type
  * Provides visual indicators for different metafield types
  */
-function getMetafieldTypeIcon(type: string): string {
+export function getMetafieldTypeIcon(type: string): string {
 	const typeMap: { [key: string]: string } = {
 		'single_line_text_field': '📝',
 		'multi_line_text_field': '📄',

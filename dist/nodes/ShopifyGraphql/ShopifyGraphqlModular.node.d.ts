@@ -12,6 +12,8 @@ export declare class ShopifyGraphqlModular implements INodeType {
             loadProductVariants(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;
             loadProductTypes(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;
             loadVendors(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;
+            searchProducts(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;
+            getMetafieldMappingColumns(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;
         };
     };
     execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]>;

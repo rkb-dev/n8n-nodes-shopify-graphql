@@ -8,3 +8,8 @@ import type { ILoadOptionsFunctions, INodePropertyOptions } from 'n8n-workflow';
  * @returns Promise<INodePropertyOptions[]> Formatted metafield options for resourceMapper
  */
 export declare function getMetafieldMappingColumns(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;
+/**
+ * Get appropriate icon for metafield type
+ * Provides visual indicators for different metafield types
+ */
+export declare function getMetafieldTypeIcon(type: string): string;

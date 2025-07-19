@@ -1,21 +1,21 @@
 import type { ILoadOptionsFunctions, INodePropertyOptions, IRequestOptions, IHttpRequestMethods } from 'n8n-workflow';
 
 /**
- * Search products from the Shopify store with advanced filtering
- * Implements Google Sheets-style searchable dropdown with large dataset support
+ * Search products for resourceLocator dropdown with proper n8n patterns
+ * Implements Shopify GraphQL pagination and search as per research brief
  * 
- * @param this ILoadOptionsFunctions context
- * @returns Promise<INodePropertyOptions[]> Formatted product options for resourceLocator
+ * @param this ILoadOptionsFunctions context from n8n framework
+ * @returns Promise<INodePropertyOptions[]> Formatted options for resourceLocator
  */
 export async function searchProducts(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 	try {
-		// Get search term from n8n's search input
-		const searchTerm = this.getCurrentNodeParameter('search') as string || '';
+		// Get search filter from resourceLocator using correct n8n pattern
+		const filter = this.getCurrentNodeParameter('filter') as string || '';
 		
-		// Limit results for performance (Google Sheets pattern)
-		const limit = 50;
+		// Implement proper pagination as per research brief
+		const limit = 50; // Shopify recommended batch size
 		
-		// Build GraphQL query with search capabilities
+		// Build GraphQL query with proper pagination pattern
 		const query = `
 			query searchProducts($query: String, $first: Int) {
 				products(query: $query, first: $first, sortKey: UPDATED_AT, reverse: true) {
@@ -27,9 +27,7 @@ export async function searchProducts(this: ILoadOptionsFunctions): Promise<INode
 							status
 							vendor
 							productType
-							totalInventory
 							createdAt
-							updatedAt
 						}
 					}
 					pageInfo {
@@ -40,19 +38,19 @@ export async function searchProducts(this: ILoadOptionsFunctions): Promise<INode
 			}
 		`;
 		
-		// Build search query string for Shopify GraphQL
+		// Build Shopify search query with proper syntax
 		let shopifyQuery = '';
-		if (searchTerm.trim()) {
-			// Search across title, handle, vendor, and product type
-			shopifyQuery = `title:*${searchTerm}* OR handle:*${searchTerm}* OR vendor:*${searchTerm}* OR product_type:*${searchTerm}*`;
+		if (filter.trim()) {
+			// Use Shopify's search syntax as per research brief
+			shopifyQuery = `title:*${filter}* OR handle:*${filter}* OR vendor:*${filter}*`;
 		}
 		
 		const variables = {
-			query: shopifyQuery,
+			query: shopifyQuery || undefined, // Don't send empty string
 			first: limit,
 		};
 		
-		// Use the correct API request pattern from GenericFunctions
+		// Use proper n8n API request pattern
 		const credentials = await this.getCredentials('shopifyGraphqlApi');
 		const requestOptions: IRequestOptions = {
 			method: 'POST' as IHttpRequestMethods,
@@ -64,71 +62,87 @@ export async function searchProducts(this: ILoadOptionsFunctions): Promise<INode
 				'Content-Type': 'application/json',
 			},
 		};
+		
 		const response = await this.helpers.request(requestOptions);
 		
-		// Handle API errors
-		if (response.errors) {
-			throw new Error(`Shopify API Error: ${response.errors.map((e: any) => e.message).join(', ')}`);
+		// Critical: Check for GraphQL errors even on 200 OK (research brief requirement)
+		if (response.errors && response.errors.length > 0) {
+			throw new Error(`Shopify GraphQL Error: ${response.errors.map((e: any) => e.message).join(', ')}`);
 		}
 		
 		const products = response.data?.products?.edges || [];
 		
-		// Transform to n8n option format
+		// Transform to exact INodePropertyOptions format expected by n8n
 		const options: INodePropertyOptions[] = products.map((edge: any) => {
 			const product = edge.node;
 			
-			// Create descriptive display name
+			// Create clear display name with vendor context
 			let displayName = product.title;
-			if (product.vendor) {
+			if (product.vendor && product.vendor !== product.title) {
 				displayName += ` (${product.vendor})`;
 			}
 			
-			// Add status indicator
-			const statusIndicator = product.status === 'ACTIVE' ? '🟢' : 
-									product.status === 'DRAFT' ? '🟡' : '🔴';
+			// Add visual status indicator
+			const statusIcon = product.status === 'ACTIVE' ? '🟢' : 
+							   product.status === 'DRAFT' ? '🟡' : '🔴';
 			
 			return {
-				name: `${statusIndicator} ${displayName}`,
-				value: product.id, // Already in GID format from GraphQL
-				description: `Handle: ${product.handle} | Type: ${product.productType || 'N/A'} | Status: ${product.status}`,
+				name: `${statusIcon} ${displayName}`,
+				value: product.id, // GID format from Shopify GraphQL
+				description: `${product.handle} | ${product.productType || 'No type'} | ${product.status}`,
 			};
 		});
 		
-		// Add helpful message if no results found
-		if (options.length === 0 && searchTerm.trim()) {
-			return [{
-				name: `No products found for "${searchTerm}"`,
-				value: '',
-				description: 'Try refining your search or check spelling',
-			}];
-		}
-		
-		// Add search instruction if no search term provided
-		if (options.length === 0 && !searchTerm.trim()) {
-			return [{
-				name: 'Start typing to search products...',
-				value: '',
-				description: 'Search by product title, handle, vendor, or type',
-			}];
+		// Handle empty results with helpful messages
+		if (options.length === 0) {
+			if (filter.trim()) {
+				return [{
+					name: `No products found for "${filter}"`,
+					value: '',
+					description: 'Try a different search term or check spelling',
+				}];
+			} else {
+				return [{
+					name: 'No products found in store',
+					value: '',
+					description: 'Your Shopify store has no products',
+				}];
+			}
 		}
 		
 		return options;
 		
 	} catch (error: any) {
-		// Comprehensive error handling following research patterns
+		// Implement comprehensive error handling as per research brief
 		if (error?.statusCode === 401) {
-			throw new Error('Shopify authentication failed. Please check your API credentials.');
-		}
-		
-		if (error?.statusCode === 429) {
-			throw new Error('Shopify API rate limit exceeded. Please wait before retrying.');
+			return [{
+				name: '🔒 Authentication Error',
+				value: '',
+				description: 'Check your Shopify API credentials',
+			}];
 		}
 		
 		if (error?.statusCode === 403) {
-			throw new Error('Insufficient permissions. Please ensure your Shopify app has read_products scope.');
+			return [{
+				name: '🚫 Permission Error', 
+				value: '',
+				description: 'Shopify app needs read_products scope',
+			}];
 		}
 		
-		// Generic error with helpful context
-		throw new Error(`Failed to search products: ${error?.message || 'Unknown error'}`);
+		if (error?.statusCode === 429) {
+			return [{
+				name: '⏱️ Rate Limited',
+				value: '',
+				description: 'Too many requests, please wait',
+			}];
+		}
+		
+		// Generic error with context
+		return [{
+			name: '❌ Error loading products',
+			value: '',
+			description: `${error?.message || 'Unknown error occurred'}`,
+		}];
 	}
 }

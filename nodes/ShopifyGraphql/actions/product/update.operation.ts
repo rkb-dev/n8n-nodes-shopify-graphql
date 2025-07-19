@@ -2,7 +2,7 @@ import type { IExecuteFunctions, INodeProperties } from 'n8n-workflow';
 import { shopifyGraphqlApiRequest } from '../../GenericFunctions';
 
 export const description: INodeProperties[] = [
-	// Product selection with resourceLocator (Google Sheets pattern)
+	// Product selection with resourceLocator for searchable large catalogs
 	{
 		displayName: 'Product',
 		name: 'productId',
@@ -14,10 +14,12 @@ export const description: INodeProperties[] = [
 				displayName: 'From List',
 				name: 'list',
 				type: 'list',
+				placeholder: 'Search products...',
+				hint: 'Search by product title, handle, or vendor',
 				typeOptions: {
 					searchListMethod: 'searchProducts',
+					searchFilterRequired: true,
 					searchable: true,
-					searchFilterRequired: true, // Critical for large product catalogs
 				},
 			},
 			{
@@ -29,17 +31,26 @@ export const description: INodeProperties[] = [
 						type: 'regex',
 						properties: {
 							regex: '^(gid://shopify/Product/)?[0-9]+$',
-							errorMessage: 'Please enter a valid Shopify Product ID',
+							errorMessage: 'Product ID must be numeric or a valid Shopify GID',
 						},
 					},
 				],
-				placeholder: 'gid://shopify/Product/123456789 or 123456789',
+				placeholder: '1234567890 or gid://shopify/Product/1234567890',
 			},
 			{
 				displayName: 'By Handle',
 				name: 'handle',
 				type: 'string',
-				placeholder: 'product-handle-slug',
+				validation: [
+					{
+						type: 'regex',
+						properties: {
+							regex: '^[a-z0-9-]+$',
+							errorMessage: 'Handle must contain only lowercase letters, numbers, and hyphens',
+						},
+					},
+				],
+				placeholder: 'my-product-handle',
 			},
 		],
 		displayOptions: {
@@ -48,7 +59,7 @@ export const description: INodeProperties[] = [
 				operation: ['update'],
 			},
 		},
-		description: 'Select the product to update',
+		description: 'Select the product to update. Search by name or specify by ID/handle.',
 	},
 	// Dynamic Metafield Editing (Google Sheets pattern)
 	{

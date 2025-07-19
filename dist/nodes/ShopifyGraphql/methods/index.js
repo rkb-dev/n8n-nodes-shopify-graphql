@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loadVendors = exports.loadProductTypes = exports.loadProductVariants = exports.loadLocations = exports.loadCollections = exports.loadOrders = exports.loadCustomers = exports.loadProducts = exports.loadMetafields = exports.loadOptionsMethods = void 0;
+exports.getMetafieldMappingColumns = exports.searchProducts = exports.loadVendors = exports.loadProductTypes = exports.loadProductVariants = exports.loadLocations = exports.loadCollections = exports.loadOrders = exports.loadCustomers = exports.loadProducts = exports.loadMetafields = exports.loadOptionsMethods = void 0;
 const loadMetafields_1 = require("./loadMetafields");
 const loadProducts_1 = require("./loadProducts");
 const loadCustomers_1 = require("./loadCustomers");
@@ -52,3 +52,7 @@ var loadProductTypes_2 = require("./loadProductTypes");
 Object.defineProperty(exports, "loadProductTypes", { enumerable: true, get: function () { return loadProductTypes_2.loadProductTypes; } });
 var loadVendors_2 = require("./loadVendors");
 Object.defineProperty(exports, "loadVendors", { enumerable: true, get: function () { return loadVendors_2.loadVendors; } });
+var searchProducts_2 = require("./searchProducts");
+Object.defineProperty(exports, "searchProducts", { enumerable: true, get: function () { return searchProducts_2.searchProducts; } });
+var getMetafieldMappingColumns_2 = require("./getMetafieldMappingColumns");
+Object.defineProperty(exports, "getMetafieldMappingColumns", { enumerable: true, get: function () { return getMetafieldMappingColumns_2.getMetafieldMappingColumns; } });

@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.execute = exports.description = void 0;
 const GenericFunctions_1 = require("../../GenericFunctions");
 exports.description = [
-    // Product selection with resourceLocator (Google Sheets pattern)
+    // Product selection with resourceLocator for searchable large catalogs
     {
         displayName: 'Product',
         name: 'productId',
@@ -15,10 +15,12 @@ exports.description = [
                 displayName: 'From List',
                 name: 'list',
                 type: 'list',
+                placeholder: 'Search products...',
+                hint: 'Search by product title, handle, or vendor',
                 typeOptions: {
                     searchListMethod: 'searchProducts',
+                    searchFilterRequired: true,
                     searchable: true,
-                    searchFilterRequired: true, // Critical for large product catalogs
                 },
             },
             {
@@ -30,17 +32,26 @@ exports.description = [
                         type: 'regex',
                         properties: {
                             regex: '^(gid://shopify/Product/)?[0-9]+$',
-                            errorMessage: 'Please enter a valid Shopify Product ID',
+                            errorMessage: 'Product ID must be numeric or a valid Shopify GID',
                         },
                     },
                 ],
-                placeholder: 'gid://shopify/Product/123456789 or 123456789',
+                placeholder: '1234567890 or gid://shopify/Product/1234567890',
             },
             {
                 displayName: 'By Handle',
                 name: 'handle',
                 type: 'string',
-                placeholder: 'product-handle-slug',
+                validation: [
+                    {
+                        type: 'regex',
+                        properties: {
+                            regex: '^[a-z0-9-]+$',
+                            errorMessage: 'Handle must contain only lowercase letters, numbers, and hyphens',
+                        },
+                    },
+                ],
+                placeholder: 'my-product-handle',
             },
         ],
         displayOptions: {
@@ -49,7 +60,7 @@ exports.description = [
                 operation: ['update'],
             },
         },
-        description: 'Select the product to update',
+        description: 'Select the product to update. Search by name or specify by ID/handle.',
     },
     // Dynamic Metafield Editing (Google Sheets pattern)
     {
