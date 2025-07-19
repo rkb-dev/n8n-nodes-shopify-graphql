@@ -909,10 +909,10 @@ export class ShopifyGraphql implements INodeType {
 						// Build date filter query string
 						let queryFilters: string[] = [];
 						if (createdAfter) {
-							queryFilters.push(`created_at:>${createdAfter}`);
+							queryFilters.push(`created_at:>=${createdAfter}`);
 						}
 						if (createdBefore) {
-							queryFilters.push(`created_at:<${createdBefore}`);
+							queryFilters.push(`created_at:<=${createdBefore}`);
 						}
 						const queryString = queryFilters.length > 0 ? queryFilters.join(' AND ') : '';
 						
