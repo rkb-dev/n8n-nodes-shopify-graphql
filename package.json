@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-shopify-graphql",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "n8n community node for Shopify GraphQL API with dynamic loading, smart dropdowns, and intelligent field selection",
   "keywords": [
     "n8n-community-node-package",
