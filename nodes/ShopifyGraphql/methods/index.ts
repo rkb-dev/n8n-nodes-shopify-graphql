@@ -4,6 +4,9 @@ import { loadCustomers } from './loadCustomers';
 import { loadOrders } from './loadOrders';
 import { loadCollections } from './loadCollections';
 import { loadLocations } from './loadLocations';
+import { loadProductVariants } from './loadProductVariants';
+import { loadProductTypes } from './loadProductTypes';
+import { loadVendors } from './loadVendors';
 
 // Export all dynamic loading methods for n8n loadOptions
 export const loadOptionsMethods = {
@@ -16,7 +19,9 @@ export const loadOptionsMethods = {
 	loadLocations,
 	
 	// Medium Priority - Enhanced Functionality (Phase 2)
-	// loadProductVariants,
+	loadProductVariants,
+	loadProductTypes,
+	loadVendors,
 	
 	// Low Priority - Advanced Features (Phase 3)
 	// loadShippingZones,
@@ -32,3 +37,6 @@ export { loadCustomers } from './loadCustomers';
 export { loadOrders } from './loadOrders';
 export { loadCollections } from './loadCollections';
 export { loadLocations } from './loadLocations';
+export { loadProductVariants } from './loadProductVariants';
+export { loadProductTypes } from './loadProductTypes';
+export { loadVendors } from './loadVendors';

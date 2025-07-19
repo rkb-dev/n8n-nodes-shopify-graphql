@@ -26,6 +26,9 @@ import {
 	loadOrders,
 	loadCollections,
 	loadLocations,
+	loadProductVariants,
+	loadProductTypes,
+	loadVendors,
 } from './methods';
 
 export class ShopifyGraphqlModular implements INodeType {
@@ -95,6 +98,17 @@ export class ShopifyGraphqlModular implements INodeType {
 			},
 			async loadLocations(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				return await loadLocations.call(this);
+			},
+			
+			// Advanced Methods - Enhanced Functionality
+			async loadProductVariants(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				return await loadProductVariants.call(this);
+			},
+			async loadProductTypes(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				return await loadProductTypes.call(this);
+			},
+			async loadVendors(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				return await loadVendors.call(this);
 			},
 		},
 	};
