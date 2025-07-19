@@ -5,6 +5,7 @@ A custom n8n community node for Shopify that leverages the GraphQL Admin API wit
 ## Features
 
 - **GraphQL API Integration**: Uses Shopify's GraphQL Admin API instead of REST for more efficient data fetching
+- **🆕 Modular Orders Query**: Select exactly which order data you need (customer info, line items, tax details, addresses) to optimize performance and reduce API costs
 - **Smart Batching**: Automatically handles large datasets with intelligent batch sizing based on API cost limits
 - **Rate Limit Management**: Built-in rate limit detection and adaptive delays to prevent throttling
 - **Cursor-based Pagination**: Efficiently handles pagination for large result sets
@@ -19,8 +20,15 @@ A custom n8n community node for Shopify that leverages the GraphQL Admin API wit
 - **Search Customers**: Search customers by email, phone, or other criteria
 
 ### Orders
-- **Get Order**: Retrieve a single order by ID
-- **Get Many Orders**: Fetch multiple orders with batching and filtering
+- **Get Order**: Retrieve a single order by ID with modular data selection
+- **Get Many Orders**: Fetch multiple orders with batching and selective data loading
+- **🎯 Modular Query System**: Choose exactly which data to include:
+  - Customer information (name, email, phone, addresses)
+  - Line items (products, variants, quantities, pricing)
+  - Tax details (tax lines, rates, totals)
+  - Billing/shipping addresses
+  - Advanced options (shipping lines, fulfillment, financial details)
+- **Performance Optimized**: Only fetch the data you need to reduce API costs and improve speed
 
 ### Products
 - **Get Product**: Retrieve a single product by ID

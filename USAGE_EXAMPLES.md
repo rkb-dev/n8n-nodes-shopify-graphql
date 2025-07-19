@@ -59,7 +59,9 @@ This document provides comprehensive examples of how to use the Shopify GraphQL 
 
 ## Order Operations
 
-### Get Single Order
+The Orders resource features a **modular query system** that allows you to select exactly which data you need, optimizing performance and reducing API costs.
+
+### Basic Order Query (Minimal Data)
 ```json
 {
   "resource": "order",
@@ -67,16 +69,126 @@ This document provides comprehensive examples of how to use the Shopify GraphQL 
   "orderId": "987654321"
 }
 ```
+**Returns:** Basic order info (id, name, email, phone, dates, status, totalPrice)
 
-### Get All Orders (Batched)
+### Enhanced Order Query with Customer Information
+```json
+{
+  "resource": "order",
+  "operation": "get",
+  "orderId": "987654321",
+  "includeCustomer": true
+}
+```
+**Returns:** Basic order info + customer details (name, email, phone, default address)
+
+### Complete Order Query with Line Items
+```json
+{
+  "resource": "order",
+  "operation": "get",
+  "orderId": "987654321",
+  "includeCustomer": true,
+  "includeLineItems": true,
+  "includeTaxDetails": true,
+  "includeAddresses": true,
+  "ordersAdvancedOptions": {
+    "lineItemsLimit": 250,
+    "includeShippingLines": true,
+    "includeFulfillmentDetails": true
+  }
+}
+```
+**Returns:** Complete order data with all business details
+
+### Bulk Orders with Selective Data
 ```json
 {
   "resource": "order",
   "operation": "getAll",
   "batchSize": 50,
-  "maxItems": 2000
+  "maxItems": 2000,
+  "includeLineItems": true,
+  "includeTaxDetails": true,
+  "ordersAdvancedOptions": {
+    "lineItemsLimit": 100,
+    "includeFinancialDetails": true
+  }
 }
 ```
+**Returns:** Bulk orders with line items, tax details, and financial information
+
+## Modular Orders Query Options
+
+### Main Data Toggles
+
+| Toggle | Description | Adds to Query |
+|--------|-------------|---------------|
+| `includeCustomer` | Customer details | Customer info, email, phone, default address |
+| `includeLineItems` | Product line items | Products, variants, quantities, SKUs, pricing |
+| `includeTaxDetails` | Tax calculations | Tax lines, rates, total tax amounts |
+| `includeAddresses` | Billing/shipping | Full billing and shipping address details |
+
+### Advanced Options Collection
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `lineItemsLimit` | number | 250 | Max line items per order (1-250) |
+| `includeShippingLines` | boolean | false | Shipping methods and costs |
+| `includeFulfillmentDetails` | boolean | false | Tracking info and fulfillment status |
+| `includeCustomAttributes` | boolean | false | Custom order attributes and notes |
+| `includeFinancialDetails` | boolean | false | Transactions and payment details |
+
+### Performance Optimization Examples
+
+#### Light Query (Fast, Low API Cost)
+```json
+{
+  "resource": "order",
+  "operation": "getAll",
+  "batchSize": 250,
+  "maxItems": 5000
+}
+```
+**Use Case:** Order status monitoring, basic reporting
+
+#### Medium Query (Balanced)
+```json
+{
+  "resource": "order",
+  "operation": "getAll",
+  "batchSize": 100,
+  "maxItems": 2000,
+  "includeCustomer": true,
+  "includeLineItems": true,
+  "ordersAdvancedOptions": {
+    "lineItemsLimit": 50
+  }
+}
+```
+**Use Case:** Sales analysis, customer insights
+
+#### Heavy Query (Complete Data)
+```json
+{
+  "resource": "order",
+  "operation": "getAll",
+  "batchSize": 25,
+  "maxItems": 500,
+  "includeCustomer": true,
+  "includeLineItems": true,
+  "includeTaxDetails": true,
+  "includeAddresses": true,
+  "ordersAdvancedOptions": {
+    "lineItemsLimit": 250,
+    "includeShippingLines": true,
+    "includeFulfillmentDetails": true,
+    "includeCustomAttributes": true,
+    "includeFinancialDetails": true
+  }
+}
+```
+**Use Case:** Data migration, comprehensive analysis, accounting integration
 
 ## Product Operations
 

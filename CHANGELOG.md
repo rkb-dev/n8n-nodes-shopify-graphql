@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Customer operations: get, getAll, search
 - Order operations: get, getAll
 - Product operations: get, getAll
+- **🆕 Modular Orders Query System**: Revolutionary UI allowing users to select exactly which order data to fetch
+  - Boolean toggles for major data sections (customer info, line items, tax details, addresses)
+  - Advanced options collection for granular control (shipping lines, fulfillment, financial details)
+  - Dynamic GraphQL query building based on user selections
+  - Performance optimization through selective data loading
+  - Conditional field visibility using n8n displayOptions
 - Smart batching with cost-aware pagination
 - Rate limiting with exponential backoff
 - Comprehensive error handling

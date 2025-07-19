@@ -165,6 +165,59 @@ export class ShopifyGraphql implements INodeType {
 				default: '',
 				description: 'The ID of the order to retrieve',
 			},
+			// Orders query data toggles
+			{
+				displayName: 'Include Customer Information',
+				name: 'includeCustomer',
+				type: 'boolean',
+				default: false,
+				displayOptions: {
+					show: {
+						resource: ['order'],
+						operation: ['get', 'getAll', 'search'],
+					},
+				},
+				description: 'Include customer details (name, email, phone, addresses)',
+			},
+			{
+				displayName: 'Include Line Items',
+				name: 'includeLineItems',
+				type: 'boolean',
+				default: false,
+				displayOptions: {
+					show: {
+						resource: ['order'],
+						operation: ['get', 'getAll', 'search'],
+					},
+				},
+				description: 'Include line items with product details, quantities, and pricing',
+			},
+			{
+				displayName: 'Include Tax Details',
+				name: 'includeTaxDetails',
+				type: 'boolean',
+				default: false,
+				displayOptions: {
+					show: {
+						resource: ['order'],
+						operation: ['get', 'getAll', 'search'],
+					},
+				},
+				description: 'Include tax lines and total tax calculations',
+			},
+			{
+				displayName: 'Include Addresses',
+				name: 'includeAddresses',
+				type: 'boolean',
+				default: false,
+				displayOptions: {
+					show: {
+						resource: ['order'],
+						operation: ['get', 'getAll', 'search'],
+					},
+				},
+				description: 'Include billing and shipping addresses',
+			},
 			// Product ID field
 			{
 				displayName: 'Product ID',
@@ -255,6 +308,66 @@ export class ShopifyGraphql implements INodeType {
 						type: 'dateTime',
 						default: '',
 						description: 'Only return items created before this date',
+					},
+				],
+			},
+			// Orders advanced options
+			{
+				displayName: 'Orders Advanced Options',
+				name: 'ordersAdvancedOptions',
+				type: 'collection',
+				placeholder: 'Add advanced option',
+				default: {},
+				displayOptions: {
+					show: {
+						resource: ['order'],
+						operation: ['get', 'getAll', 'search'],
+					},
+				},
+				options: [
+					{
+						displayName: 'Line Items Limit',
+						name: 'lineItemsLimit',
+						type: 'number',
+						default: 250,
+						description: 'Maximum number of line items to fetch per order (1-250)',
+						typeOptions: {
+							minValue: 1,
+							maxValue: 250,
+						},
+						displayOptions: {
+							show: {
+								'/includeLineItems': [true],
+							},
+						},
+					},
+					{
+						displayName: 'Include Shipping Lines',
+						name: 'includeShippingLines',
+						type: 'boolean',
+						default: false,
+						description: 'Include shipping method and cost details',
+					},
+					{
+						displayName: 'Include Fulfillment Details',
+						name: 'includeFulfillmentDetails',
+						type: 'boolean',
+						default: false,
+						description: 'Include fulfillment status and tracking information',
+					},
+					{
+						displayName: 'Include Custom Attributes',
+						name: 'includeCustomAttributes',
+						type: 'boolean',
+						default: false,
+						description: 'Include custom order attributes and notes',
+					},
+					{
+						displayName: 'Include Financial Details',
+						name: 'includeFinancialDetails',
+						type: 'boolean',
+						default: false,
+						description: 'Include payment status, transactions, and financial summary',
 					},
 				],
 			},
@@ -355,6 +468,210 @@ export class ShopifyGraphql implements INodeType {
 				} else if (resource === 'order') {
 					if (operation === 'get') {
 						const orderId = this.getNodeParameter('orderId', i) as string;
+						
+						// Get modular UI selections
+						const includeCustomer = this.getNodeParameter('includeCustomer', i, false) as boolean;
+						const includeLineItems = this.getNodeParameter('includeLineItems', i, false) as boolean;
+						const includeTaxDetails = this.getNodeParameter('includeTaxDetails', i, false) as boolean;
+						const includeAddresses = this.getNodeParameter('includeAddresses', i, false) as boolean;
+						
+						// Get advanced options
+						const advancedOptions = this.getNodeParameter('ordersAdvancedOptions', i, {}) as any;
+						const lineItemsLimit = advancedOptions.lineItemsLimit || 250;
+						const includeShippingLines = advancedOptions.includeShippingLines || false;
+						const includeFulfillmentDetails = advancedOptions.includeFulfillmentDetails || false;
+						const includeCustomAttributes = advancedOptions.includeCustomAttributes || false;
+						const includeFinancialDetails = advancedOptions.includeFinancialDetails || false;
+						
+						// Build dynamic query fragments
+						let customerFragment = '';
+						if (includeCustomer) {
+							customerFragment = `
+								customer {
+									id
+									firstName
+									lastName
+									email
+									phone
+									verifiedEmail
+									defaultAddress {
+										address1
+										address2
+										city
+										province
+										country
+										zip
+									}
+								}`;
+						}
+						
+						let lineItemsFragment = '';
+						if (includeLineItems) {
+							lineItemsFragment = `
+								lineItems(first: ${lineItemsLimit}) {
+									nodes {
+										id
+										name
+										quantity
+										sku
+										variant {
+											id
+											title
+											price
+											sku
+											product {
+												id
+												title
+												productType
+												vendor
+											}
+										}
+										originalUnitPriceSet {
+											shopMoney {
+												amount
+												currencyCode
+											}
+										}
+										discountedUnitPriceSet {
+											shopMoney {
+												amount
+												currencyCode
+											}
+										}
+									}
+								}`;
+						}
+						
+						let taxFragment = '';
+						if (includeTaxDetails) {
+							taxFragment = `
+								taxLines {
+									title
+									rate
+									priceSet {
+										shopMoney {
+											amount
+											currencyCode
+										}
+									}
+								}
+								totalTaxSet {
+									shopMoney {
+										amount
+										currencyCode
+									}
+								}
+								currentTotalTaxSet {
+									shopMoney {
+										amount
+										currencyCode
+									}
+								}`;
+						}
+						
+						let addressesFragment = '';
+						if (includeAddresses) {
+							addressesFragment = `
+								shippingAddress {
+									firstName
+									lastName
+									address1
+									address2
+									city
+									province
+									country
+									zip
+									phone
+								}
+								billingAddress {
+									firstName
+									lastName
+									address1
+									address2
+									city
+									province
+									country
+									zip
+									phone
+								}`;
+						}
+						
+						let shippingFragment = '';
+						if (includeShippingLines) {
+							shippingFragment = `
+								shippingLines {
+									title
+									code
+									originalPriceSet {
+										shopMoney {
+											amount
+											currencyCode
+										}
+									}
+									discountedPriceSet {
+										shopMoney {
+											amount
+											currencyCode
+										}
+									}
+								}`;
+						}
+						
+						let fulfillmentFragment = '';
+						if (includeFulfillmentDetails) {
+							fulfillmentFragment = `
+								fulfillments {
+									id
+									status
+									trackingCompany
+									trackingNumbers
+									trackingUrls
+									createdAt
+									updatedAt
+								}`;
+						}
+						
+						let customAttributesFragment = '';
+						if (includeCustomAttributes) {
+							customAttributesFragment = `
+								customAttributes {
+									key
+									value
+								}
+								note`;
+						}
+						
+						let financialFragment = '';
+						if (includeFinancialDetails) {
+							financialFragment = `
+								transactions {
+									id
+									status
+									kind
+									amountSet {
+										shopMoney {
+											amount
+											currencyCode
+										}
+									}
+									gateway
+									createdAt
+								}
+								currentSubtotalPriceSet {
+									shopMoney {
+										amount
+										currencyCode
+									}
+								}
+								currentTotalPriceSet {
+									shopMoney {
+										amount
+										currencyCode
+									}
+								}`;
+						}
+						
+						// Build complete dynamic query
 						const query = `
 							query getOrder($id: ID!) {
 								order(id: $id) {
@@ -372,7 +689,7 @@ export class ShopifyGraphql implements INodeType {
 											amount
 											currencyCode
 										}
-									}
+									}${customerFragment}${lineItemsFragment}${taxFragment}${addressesFragment}${shippingFragment}${fulfillmentFragment}${customAttributesFragment}${financialFragment}
 								}
 							}
 						`;
@@ -382,6 +699,210 @@ export class ShopifyGraphql implements INodeType {
 					} else if (operation === 'getAll') {
 						const batchSize = this.getNodeParameter('batchSize', i, 50) as number;
 						const maxItems = this.getNodeParameter('maxItems', i, 0) as number;
+						
+						// Get modular UI selections (same as get operation)
+						const includeCustomer = this.getNodeParameter('includeCustomer', i, false) as boolean;
+						const includeLineItems = this.getNodeParameter('includeLineItems', i, false) as boolean;
+						const includeTaxDetails = this.getNodeParameter('includeTaxDetails', i, false) as boolean;
+						const includeAddresses = this.getNodeParameter('includeAddresses', i, false) as boolean;
+						
+						// Get advanced options
+						const advancedOptions = this.getNodeParameter('ordersAdvancedOptions', i, {}) as any;
+						const lineItemsLimit = advancedOptions.lineItemsLimit || 250;
+						const includeShippingLines = advancedOptions.includeShippingLines || false;
+						const includeFulfillmentDetails = advancedOptions.includeFulfillmentDetails || false;
+						const includeCustomAttributes = advancedOptions.includeCustomAttributes || false;
+						const includeFinancialDetails = advancedOptions.includeFinancialDetails || false;
+						
+						// Build dynamic query fragments (reuse same logic)
+						let customerFragment = '';
+						if (includeCustomer) {
+							customerFragment = `
+								customer {
+									id
+									firstName
+									lastName
+									email
+									phone
+									verifiedEmail
+									defaultAddress {
+										address1
+										address2
+										city
+										province
+										country
+										zip
+									}
+								}`;
+						}
+						
+						let lineItemsFragment = '';
+						if (includeLineItems) {
+							lineItemsFragment = `
+								lineItems(first: ${lineItemsLimit}) {
+									nodes {
+										id
+										name
+										quantity
+										sku
+										variant {
+											id
+											title
+											price
+											sku
+											product {
+												id
+												title
+												productType
+												vendor
+											}
+										}
+										originalUnitPriceSet {
+											shopMoney {
+												amount
+												currencyCode
+											}
+										}
+										discountedUnitPriceSet {
+											shopMoney {
+												amount
+												currencyCode
+											}
+										}
+									}
+								}`;
+						}
+						
+						let taxFragment = '';
+						if (includeTaxDetails) {
+							taxFragment = `
+								taxLines {
+									title
+									rate
+									priceSet {
+										shopMoney {
+											amount
+											currencyCode
+										}
+									}
+								}
+								totalTaxSet {
+									shopMoney {
+										amount
+										currencyCode
+									}
+								}
+								currentTotalTaxSet {
+									shopMoney {
+										amount
+										currencyCode
+									}
+								}`;
+						}
+						
+						let addressesFragment = '';
+						if (includeAddresses) {
+							addressesFragment = `
+								shippingAddress {
+									firstName
+									lastName
+									address1
+									address2
+									city
+									province
+									country
+									zip
+									phone
+								}
+								billingAddress {
+									firstName
+									lastName
+									address1
+									address2
+									city
+									province
+									country
+									zip
+									phone
+								}`;
+						}
+						
+						let shippingFragment = '';
+						if (includeShippingLines) {
+							shippingFragment = `
+								shippingLines {
+									title
+									code
+									originalPriceSet {
+										shopMoney {
+											amount
+											currencyCode
+										}
+									}
+									discountedPriceSet {
+										shopMoney {
+											amount
+											currencyCode
+										}
+									}
+								}`;
+						}
+						
+						let fulfillmentFragment = '';
+						if (includeFulfillmentDetails) {
+							fulfillmentFragment = `
+								fulfillments {
+									id
+									status
+									trackingCompany
+									trackingNumbers
+									trackingUrls
+									createdAt
+									updatedAt
+								}`;
+						}
+						
+						let customAttributesFragment = '';
+						if (includeCustomAttributes) {
+							customAttributesFragment = `
+								customAttributes {
+									key
+									value
+								}
+								note`;
+						}
+						
+						let financialFragment = '';
+						if (includeFinancialDetails) {
+							financialFragment = `
+								transactions {
+									id
+									status
+									kind
+									amountSet {
+										shopMoney {
+											amount
+											currencyCode
+										}
+									}
+									gateway
+									createdAt
+								}
+								currentSubtotalPriceSet {
+									shopMoney {
+										amount
+										currencyCode
+									}
+								}
+								currentTotalPriceSet {
+									shopMoney {
+										amount
+										currencyCode
+									}
+								}`;
+						}
+						
+						// Build complete dynamic query for getAll
 						const query = `
 							query getOrders($first: Int!, $after: String) {
 								orders(first: $first, after: $after) {
@@ -401,7 +922,7 @@ export class ShopifyGraphql implements INodeType {
 													amount
 													currencyCode
 												}
-											}
+											}${customerFragment}${lineItemsFragment}${taxFragment}${addressesFragment}${shippingFragment}${fulfillmentFragment}${customAttributesFragment}${financialFragment}
 										}
 									}
 									pageInfo {
