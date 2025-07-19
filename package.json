@@ -42,7 +42,7 @@
       "dist/credentials/ShopifyGraphqlApi.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/ShopifyGraphql/ShopifyGraphql.node.js"
+      "dist/nodes/ShopifyGraphql/ShopifyGraphqlModular.node.js"
     ]
   },
   "devDependencies": {
