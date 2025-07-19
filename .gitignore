@@ -7,6 +7,9 @@ yarn-error.log*
 # Build output
 dist/
 
+# Keep monolithic node local only (use modular version for GitHub)
+nodes/ShopifyGraphql/ShopifyGraphql.node.ts
+
 # Environment variables
 .env
 .env.local
