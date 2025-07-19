@@ -136,6 +136,115 @@ export const description: INodeProperties[] = [
 		default: '',
 		description: 'Enter collection ID manually if not found in dropdown',
 	},
+	// Product Metafields Collection
+	{
+		displayName: 'Product Metafields',
+		name: 'productMetafields',
+		type: 'fixedCollection',
+		typeOptions: {
+			multipleValues: true,
+		},
+		displayOptions: {
+			show: {
+				resource: ['product'],
+				operation: ['create'],
+			},
+		},
+		default: {},
+		description: 'Custom metafields for additional product data',
+		options: [
+			{
+				name: 'metafield',
+				displayName: 'Metafield',
+				values: [
+					{
+						displayName: 'Namespace',
+						name: 'namespace',
+						type: 'options',
+						typeOptions: {
+							loadOptionsMethod: 'loadMetafields',
+						},
+						required: true,
+						default: 'custom',
+						description: 'Select metafield namespace from your Shopify store',
+					},
+					{
+						displayName: 'Manual Namespace',
+						name: 'manualNamespace',
+						type: 'string',
+						displayOptions: {
+							show: {
+								namespace: ['__manual__'],
+							},
+						},
+						default: 'custom',
+						description: 'Enter namespace manually if not found in dropdown',
+					},
+					{
+						displayName: 'Key',
+						name: 'key',
+						type: 'string',
+						required: true,
+						default: '',
+						description: 'Metafield key identifier',
+					},
+					{
+						displayName: 'Value',
+						name: 'value',
+						type: 'string',
+						required: true,
+						default: '',
+						description: 'Metafield value',
+					},
+					{
+						displayName: 'Type',
+						name: 'type',
+						type: 'options',
+						options: [
+							{
+								name: 'Single Line Text',
+								value: 'single_line_text_field',
+							},
+							{
+								name: 'Multi Line Text',
+								value: 'multi_line_text_field',
+							},
+							{
+								name: 'Number (Integer)',
+								value: 'number_integer',
+							},
+							{
+								name: 'Number (Decimal)',
+								value: 'number_decimal',
+							},
+							{
+								name: 'Date',
+								value: 'date',
+							},
+							{
+								name: 'Date and Time',
+								value: 'date_time',
+							},
+							{
+								name: 'URL',
+								value: 'url',
+							},
+							{
+								name: 'JSON',
+								value: 'json',
+							},
+							{
+								name: 'Boolean',
+								value: 'boolean',
+							},
+						],
+						default: 'single_line_text_field',
+						description: 'The type of data stored in this metafield',
+					},
+				],
+			},
+		],
+	},
 ];
 
 export async function execute(

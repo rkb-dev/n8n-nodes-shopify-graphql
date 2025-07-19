@@ -10,7 +10,6 @@ import type {
 import { NodeConnectionType } from 'n8n-workflow';
 
 import {
-	allActionProperties,
 	executeProductGet,
 	executeProductCreate,
 	executeProductUpdate,
@@ -18,6 +17,11 @@ import {
 	executeCustomerGet,
 	executeOrderGet,
 } from './actions';
+
+// Import individual modules for proper field organization
+import * as productModule from './actions/product';
+import * as customerModule from './actions/customer';
+import * as orderModule from './actions/order';
 
 import {
 	loadProducts,
@@ -73,7 +77,21 @@ export class ShopifyGraphqlModular implements INodeType {
 				],
 				default: 'product',
 			},
-			...allActionProperties,
+			// Import operation definitions from each resource
+			...productModule.productOperations,
+			...customerModule.customerOperations,
+			...orderModule.orderOperations,
+			
+			// Import shared resource fields
+			...productModule.productFields,
+			
+			// Import individual operation descriptions
+			...productModule.getOperation.description,
+			...productModule.createOperation.description,
+			...productModule.updateOperation.description,
+			...productModule.deleteOperation.description,
+			...customerModule.getOperation.description,
+			...orderModule.getOperation.description,
 		],
 	};
 
