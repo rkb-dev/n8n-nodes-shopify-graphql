@@ -33,15 +33,15 @@ import {
 
 export class ShopifyGraphqlModular implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'Shopify GraphQL (Modular)',
+		displayName: 'Shopify GraphQL Dynamic',
 		name: 'shopifyGraphqlModular',
-		icon: 'file:shopify.svg',
+		icon: 'file:shopify-dynamic.svg',
 		group: ['transform'],
-		version: 1,
+		version: 2,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
-		description: 'Interact with Shopify using GraphQL API (Modular Architecture)',
+		description: 'Shopify GraphQL with Dynamic Loading & Smart Dropdowns (v2.0 - Latest)',
 		defaults: {
-			name: 'Shopify GraphQL (Modular)',
+			name: 'Shopify GraphQL Dynamic',
 		},
 		inputs: [NodeConnectionType.Main],
 		outputs: [NodeConnectionType.Main],
