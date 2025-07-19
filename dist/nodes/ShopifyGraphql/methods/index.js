@@ -10,6 +10,8 @@ const loadLocations_1 = require("./loadLocations");
 const loadProductVariants_1 = require("./loadProductVariants");
 const loadProductTypes_1 = require("./loadProductTypes");
 const loadVendors_1 = require("./loadVendors");
+const searchProducts_1 = require("./searchProducts");
+const getMetafieldMappingColumns_1 = require("./getMetafieldMappingColumns");
 // Export all dynamic loading methods for n8n loadOptions
 exports.loadOptionsMethods = {
     // High Priority - Essential Methods (Phase 1)
@@ -23,6 +25,10 @@ exports.loadOptionsMethods = {
     loadProductVariants: loadProductVariants_1.loadProductVariants,
     loadProductTypes: loadProductTypes_1.loadProductTypes,
     loadVendors: loadVendors_1.loadVendors,
+    // Google Sheets-Style Search Methods (Phase 1 - Dynamic UX)
+    searchProducts: searchProducts_1.searchProducts,
+    getMetafieldMappingColumns: // resourceLocator search method for large product catalogs
+    getMetafieldMappingColumns_1.getMetafieldMappingColumns, // resourceMapper method for dynamic metafield discovery
     // Low Priority - Advanced Features (Phase 3)
     // loadShippingZones,
     // loadTaxSettings,

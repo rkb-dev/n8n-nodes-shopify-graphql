@@ -7,6 +7,8 @@ import { loadLocations } from './loadLocations';
 import { loadProductVariants } from './loadProductVariants';
 import { loadProductTypes } from './loadProductTypes';
 import { loadVendors } from './loadVendors';
+import { searchProducts } from './searchProducts';
+import { getMetafieldMappingColumns } from './getMetafieldMappingColumns';
 
 // Export all dynamic loading methods for n8n loadOptions
 export const loadOptionsMethods = {
@@ -22,6 +24,10 @@ export const loadOptionsMethods = {
 	loadProductVariants,
 	loadProductTypes,
 	loadVendors,
+	
+	// Google Sheets-Style Search Methods (Phase 1 - Dynamic UX)
+	searchProducts, // resourceLocator search method for large product catalogs
+	getMetafieldMappingColumns, // resourceMapper method for dynamic metafield discovery
 	
 	// Low Priority - Advanced Features (Phase 3)
 	// loadShippingZones,

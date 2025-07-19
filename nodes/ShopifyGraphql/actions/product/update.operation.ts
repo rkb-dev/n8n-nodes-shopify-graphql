@@ -2,38 +2,81 @@ import type { IExecuteFunctions, INodeProperties } from 'n8n-workflow';
 import { shopifyGraphqlApiRequest } from '../../GenericFunctions';
 
 export const description: INodeProperties[] = [
-	// Product selection with dynamic loading
+	// Product selection with resourceLocator (Google Sheets pattern)
 	{
 		displayName: 'Product',
 		name: 'productId',
-		type: 'options',
-		typeOptions: {
-			loadOptionsMethod: 'loadProducts',
-		},
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		required: true,
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchProducts',
+					searchable: true,
+					searchFilterRequired: true, // Critical for large product catalogs
+				},
+			},
+			{
+				displayName: 'By ID',
+				name: 'id',
+				type: 'string',
+				validation: [
+					{
+						type: 'regex',
+						properties: {
+							regex: '^(gid://shopify/Product/)?[0-9]+$',
+							errorMessage: 'Please enter a valid Shopify Product ID',
+						},
+					},
+				],
+				placeholder: 'gid://shopify/Product/123456789 or 123456789',
+			},
+			{
+				displayName: 'By Handle',
+				name: 'handle',
+				type: 'string',
+				placeholder: 'product-handle-slug',
+			},
+		],
 		displayOptions: {
 			show: {
 				resource: ['product'],
 				operation: ['update'],
 			},
 		},
-		default: '',
-		description: 'Select product to update from your Shopify store',
+		description: 'Select the product to update',
 	},
-	// Manual Product ID (fallback option)
+	// Dynamic Metafield Editing (Google Sheets pattern)
 	{
-		displayName: 'Manual Product ID',
-		name: 'manualProductId',
-		type: 'string',
+		displayName: 'Product Metafields',
+		name: 'metafieldsToUpdate',
+		type: 'resourceMapper',
+		default: {
+			mappingMode: 'defineBelow',
+			value: null,
+		},
+		noDataExpression: true,
+		typeOptions: {
+			loadOptionsDependsOn: ['productId'], // Refresh when product changes
+			resourceMapper: {
+				resourceMapperMethod: 'getMetafieldMappingColumns',
+				mode: 'add',
+				addAllFields: true, // Allow selecting all metafields at once
+				multiKeyMatch: true, // Support flexible field matching
+				supportAutoMap: true, // Enable auto-mapping when possible
+			},
+		},
 		displayOptions: {
 			show: {
 				resource: ['product'],
 				operation: ['update'],
-				productId: ['__manual__'],
 			},
 		},
-		default: '',
-		description: 'Enter product ID manually if not found in dropdown',
+		description: 'Select and edit metafields for the chosen product. Metafields will load automatically after selecting a product.',
 	},
 	// Product Description field
 	{
@@ -128,10 +171,46 @@ export async function execute(
 	this: IExecuteFunctions,
 	i: number,
 ): Promise<any> {
-	// Handle dynamic product selection with manual fallback
-	let productId = this.getNodeParameter('productId', i) as string;
-	if (productId === '__manual__') {
-		productId = this.getNodeParameter('manualProductId', i) as string;
+	// Handle resourceLocator pattern for product selection
+	const productResource = this.getNodeParameter('productId', i) as { mode: string; value: string };
+	
+	let productId: string;
+	
+	// Handle different resourceLocator modes
+	switch (productResource.mode) {
+		case 'list':
+			// Value from searchProducts method (already in GID format)
+			productId = productResource.value;
+			break;
+		case 'id':
+			// Manual ID input - ensure GID format
+			productId = productResource.value.startsWith('gid://shopify/Product/')
+				? productResource.value
+				: `gid://shopify/Product/${productResource.value}`;
+			break;
+		case 'handle':
+			// Handle input - need to resolve to product ID via GraphQL
+			const handleQuery = `
+				query getProductByHandle($handle: String!) {
+					productByHandle(handle: $handle) {
+						id
+					}
+				}
+			`;
+			const handleResponse = await shopifyGraphqlApiRequest.call(
+				this,
+				handleQuery,
+				{ handle: productResource.value }
+			);
+			
+			if (!handleResponse.data.productByHandle) {
+				throw new Error(`Product with handle '${productResource.value}' not found`);
+			}
+			
+			productId = handleResponse.data.productByHandle.id;
+			break;
+		default:
+			throw new Error(`Unsupported product selection mode: ${productResource.mode}`);
 	}
 	
 	// Validate product ID
@@ -139,10 +218,10 @@ export async function execute(
 		throw new Error('Product ID is required');
 	}
 	
-	// Ensure product ID is in GID format
-	if (!productId.startsWith('gid://shopify/Product/')) {
-		productId = `gid://shopify/Product/${productId}`;
-	}
+	// Get metafields from resourceMapper
+	const metafieldsToUpdate = this.getNodeParameter('metafieldsToUpdate', i, {}) as any;
+	
+	// Get traditional product fields
 	const productDescription = this.getNodeParameter('productDescription', i, '') as string;
 	const productHandle = this.getNodeParameter('productHandle', i, '') as string;
 	const productStatus = this.getNodeParameter('productStatus', i, '') as string;
@@ -159,11 +238,133 @@ export async function execute(
 	if (productStatus) productInput.status = productStatus;
 	if (productVendor) productInput.vendor = productVendor;
 	if (productType) productInput.productType = productType;
+	
+	// Process metafield updates from resourceMapper
+	const metafieldUpdates: any[] = [];
+	if (metafieldsToUpdate && metafieldsToUpdate.value) {
+		// Handle resourceMapper data structure
+		const metafieldMappings = metafieldsToUpdate.value;
+		
+		for (const [metafieldKey, metafieldValue] of Object.entries(metafieldMappings)) {
+			// Skip special values
+			if (metafieldKey === '__header__' || metafieldKey === '__no_metafields__' || metafieldKey === '__create_new__') {
+				continue;
+			}
+			
+			// Parse namespace.key format
+			const [namespace, key] = metafieldKey.split('.');
+			if (!namespace || !key) {
+				continue; // Skip invalid keys
+			}
+			
+			// Only update if value is provided and not empty
+			if (metafieldValue !== null && metafieldValue !== undefined && metafieldValue !== '') {
+				metafieldUpdates.push({
+					namespace,
+					key,
+					value: String(metafieldValue), // Ensure string value
+					type: 'single_line_text_field', // Default type, could be enhanced
+				});
+			}
+		}
+	}
 
-	const mutation = `
-		mutation productUpdate($input: ProductInput!) {
-			productUpdate(input: $input) {
-				product {
+	// Execute product update and metafield updates
+	const results: any = {
+		product: null,
+		metafields: [],
+		errors: [],
+	};
+	
+	// 1. Update product basic fields if any are provided
+	if (Object.keys(productInput).length > 1) { // More than just ID
+		const productMutation = `
+			mutation productUpdate($input: ProductInput!) {
+				productUpdate(input: $input) {
+					product {
+						id
+						title
+						description
+						vendor
+						productType
+						tags
+						handle
+						status
+						createdAt
+						updatedAt
+					}
+					userErrors {
+						field
+						message
+					}
+				}
+			}
+		`;
+		
+		const productResponse = await shopifyGraphqlApiRequest.call(this, productMutation, { input: productInput });
+		
+		if (productResponse.data.productUpdate.userErrors.length > 0) {
+			results.errors.push(...productResponse.data.productUpdate.userErrors.map((e: any) => `Product: ${e.message}`));
+		} else {
+			results.product = productResponse.data.productUpdate.product;
+		}
+	}
+	
+	// 2. Update metafields if any are provided
+	if (metafieldUpdates.length > 0) {
+		for (const metafield of metafieldUpdates) {
+			try {
+				const metafieldMutation = `
+					mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
+						metafieldsSet(metafields: $metafields) {
+							metafields {
+								id
+								namespace
+								key
+								value
+								type
+								updatedAt
+							}
+							userErrors {
+								field
+								message
+							}
+						}
+					}
+				`;
+				
+				const metafieldInput = {
+					ownerId: productId,
+					namespace: metafield.namespace,
+					key: metafield.key,
+					value: metafield.value,
+					type: metafield.type,
+				};
+				
+				const metafieldResponse = await shopifyGraphqlApiRequest.call(
+					this, 
+					metafieldMutation, 
+					{ metafields: [metafieldInput] }
+				);
+				
+				if (metafieldResponse.data.metafieldsSet.userErrors.length > 0) {
+					results.errors.push(...metafieldResponse.data.metafieldsSet.userErrors.map(
+						(e: any) => `Metafield ${metafield.namespace}.${metafield.key}: ${e.message}`
+					));
+				} else {
+					results.metafields.push(...metafieldResponse.data.metafieldsSet.metafields);
+				}
+			} catch (error: any) {
+				results.errors.push(`Metafield ${metafield.namespace}.${metafield.key}: ${error?.message || 'Unknown error'}`);
+			}
+		}
+	}
+	
+	// 3. If no product was updated but we have metafields, fetch the product info
+	if (!results.product && metafieldUpdates.length > 0) {
+		const productQuery = `
+			query getProduct($id: ID!) {
+				product(id: $id) {
 					id
 					title
 					description
@@ -175,20 +376,26 @@ export async function execute(
 					createdAt
 					updatedAt
 				}
-				userErrors {
-					field
-					message
-				}
 			}
-		}
-	`;
-	
-	const variables = { input: productInput };
-	const response = await shopifyGraphqlApiRequest.call(this, mutation, variables);
-	
-	if (response.data.productUpdate.userErrors.length > 0) {
-		throw new Error(`Product update failed: ${response.data.productUpdate.userErrors.map((e: any) => e.message).join(', ')}`);
+		`;
+		
+		const productQueryResponse = await shopifyGraphqlApiRequest.call(this, productQuery, { id: productId });
+		results.product = productQueryResponse.data.product;
 	}
 	
-	return response.data.productUpdate.product;
+	// 4. Handle errors
+	if (results.errors.length > 0) {
+		throw new Error(`Update failed: ${results.errors.join('; ')}`);
+	}
+	
+	// 5. Return comprehensive results
+	return {
+		product: results.product,
+		metafieldsUpdated: results.metafields,
+		updatedCount: {
+			product: results.product ? 1 : 0,
+			metafields: results.metafields.length,
+		},
+		summary: `Updated product ${results.product ? '✓' : '✗'}, ${results.metafields.length} metafield(s) ✓`,
+	};
 }
