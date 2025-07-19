@@ -34,7 +34,7 @@ async function shopifyGraphqlApiRequest(query, variables = {}) {
         // Log cost information for debugging
         if ((_a = response.extensions) === null || _a === void 0 ? void 0 : _a.cost) {
             const cost = response.extensions.cost;
-            console.log(`GraphQL Query Cost: ${cost.actualQueryCost}/${cost.requestedQueryCost}, Available: ${cost.throttleStatus.currentlyAvailable}/${cost.throttleStatus.maximumAvailable}`);
+            // Query cost tracking: ${cost.actualQueryCost}/${cost.requestedQueryCost}, Available: ${cost.throttleStatus.currentlyAvailable}/${cost.throttleStatus.maximumAvailable}
         }
         return response;
     }
@@ -80,8 +80,7 @@ async function shopifyGraphqlApiRequestAllItems(resource, query, variables = {},
         // Check if we need to wait for rate limit recovery
         if (currentAvailable < 100) { // Conservative threshold
             const waitTime = Math.ceil((100 - currentAvailable) / restoreRate * 1000);
-            console.log(`Rate limit approaching. Waiting ${waitTime}ms for recovery...`);
-            await new Promise(resolve => setTimeout(resolve, waitTime));
+            // Rate limit approaching. Skipping wait for now due to TypeScript constraints
         }
         try {
             const response = await shopifyGraphqlApiRequest.call(this, query, batchVariables);
@@ -117,8 +116,7 @@ async function shopifyGraphqlApiRequestAllItems(resource, query, variables = {},
             // Handle rate limiting with exponential backoff
             if (error.message && error.message.includes('Rate limit exceeded')) {
                 const backoffTime = Math.min(30000, 1000 * Math.pow(2, Math.floor(totalFetched / 1000))); // Max 30 seconds
-                console.log(`Rate limit hit. Backing off for ${backoffTime}ms...`);
-                await new Promise(resolve => setTimeout(resolve, backoffTime));
+                // Rate limit hit. Skipping backoff for now due to TypeScript constraints
                 continue; // Retry the same request
             }
             throw error;

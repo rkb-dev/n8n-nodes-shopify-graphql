@@ -1,4 +1,4 @@
-import type { INodeProperties, IExecuteFunctions, IDataObject, INodeExecutionData } from 'n8n-workflow';
+import type { INodeProperties, IExecuteFunctions } from 'n8n-workflow';
 import { shopifyGraphqlApiRequest, shopifyGraphqlApiRequestAllItems } from '../../GenericFunctions';
 import { orderFiltersCollection, ordersAdvancedOptionsCollection } from './order.filters';
 import { buildOrderQueryFilters } from './order.filtering';

@@ -3,64 +3,39 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.execute = exports.description = void 0;
 const GenericFunctions_1 = require("../../GenericFunctions");
 exports.description = [
-    // Product selection with resourceLocator for searchable large catalogs
+    // Product search input field
     {
-        displayName: 'Product',
-        name: 'productId',
-        type: 'resourceLocator',
-        default: { mode: 'list', value: '' },
-        required: true,
-        modes: [
-            {
-                displayName: 'From List',
-                name: 'list',
-                type: 'list',
-                placeholder: 'Search products...',
-                hint: 'Search by product title, handle, or vendor',
-                typeOptions: {
-                    searchListMethod: 'searchProducts',
-                    searchFilterRequired: true,
-                    searchable: true,
-                },
-            },
-            {
-                displayName: 'By ID',
-                name: 'id',
-                type: 'string',
-                validation: [
-                    {
-                        type: 'regex',
-                        properties: {
-                            regex: '^(gid://shopify/Product/)?[0-9]+$',
-                            errorMessage: 'Product ID must be numeric or a valid Shopify GID',
-                        },
-                    },
-                ],
-                placeholder: '1234567890 or gid://shopify/Product/1234567890',
-            },
-            {
-                displayName: 'By Handle',
-                name: 'handle',
-                type: 'string',
-                validation: [
-                    {
-                        type: 'regex',
-                        properties: {
-                            regex: '^[a-z0-9-]+$',
-                            errorMessage: 'Handle must contain only lowercase letters, numbers, and hyphens',
-                        },
-                    },
-                ],
-                placeholder: 'my-product-handle',
-            },
-        ],
+        displayName: 'Search Products',
+        name: 'searchTerm',
+        type: 'string',
+        default: '',
+        placeholder: 'Search by product title, handle, or vendor...',
         displayOptions: {
             show: {
                 resource: ['product'],
                 operation: ['update'],
             },
         },
-        description: 'Select the product to update. Search by name or specify by ID/handle.',
+        description: 'Enter search term to find products',
+    },
+    // Product selection from search results
+    {
+        displayName: 'Product',
+        name: 'productId',
+        type: 'options',
+        typeOptions: {
+            loadOptionsMethod: 'searchProducts',
+            loadOptionsDependsOn: ['searchTerm'],
+        },
+        required: true,
+        displayOptions: {
+            show: {
+                resource: ['product'],
+                operation: ['update'],
+            },
+        },
+        default: '',
+        description: 'Select product from search results',
     },
     // Dynamic Metafield Editing (Google Sheets pattern)
     {
@@ -179,39 +154,8 @@ exports.description = [
     },
 ];
 async function execute(i) {
-    // Handle resourceLocator pattern for product selection
-    const productResource = this.getNodeParameter('productId', i);
-    let productId;
-    // Handle different resourceLocator modes
-    switch (productResource.mode) {
-        case 'list':
-            // Value from searchProducts method (already in GID format)
-            productId = productResource.value;
-            break;
-        case 'id':
-            // Manual ID input - ensure GID format
-            productId = productResource.value.startsWith('gid://shopify/Product/')
-                ? productResource.value
-                : `gid://shopify/Product/${productResource.value}`;
-            break;
-        case 'handle':
-            // Handle input - need to resolve to product ID via GraphQL
-            const handleQuery = `
-				query getProductByHandle($handle: String!) {
-					productByHandle(handle: $handle) {
-						id
-					}
-				}
-			`;
-            const handleResponse = await GenericFunctions_1.shopifyGraphqlApiRequest.call(this, handleQuery, { handle: productResource.value });
-            if (!handleResponse.data.productByHandle) {
-                throw new Error(`Product with handle '${productResource.value}' not found`);
-            }
-            productId = handleResponse.data.productByHandle.id;
-            break;
-        default:
-            throw new Error(`Unsupported product selection mode: ${productResource.mode}`);
-    }
+    // Get product ID from simple dropdown selection
+    const productId = this.getNodeParameter('productId', i);
     // Validate product ID
     if (!productId) {
         throw new Error('Product ID is required');

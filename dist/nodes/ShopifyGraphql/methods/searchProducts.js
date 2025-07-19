@@ -11,8 +11,8 @@ exports.searchProducts = void 0;
 async function searchProducts() {
     var _a, _b;
     try {
-        // Get search filter from resourceLocator using correct n8n pattern
-        const filter = this.getCurrentNodeParameter('filter') || '';
+        // Get search term from search input field
+        const searchTerm = this.getCurrentNodeParameter('searchTerm') || '';
         // Implement proper pagination as per research brief
         const limit = 50; // Shopify recommended batch size
         // Build GraphQL query with proper pagination pattern
@@ -39,9 +39,9 @@ async function searchProducts() {
 		`;
         // Build Shopify search query with proper syntax
         let shopifyQuery = '';
-        if (filter.trim()) {
+        if (searchTerm.trim()) {
             // Use Shopify's search syntax as per research brief
-            shopifyQuery = `title:*${filter}* OR handle:*${filter}* OR vendor:*${filter}*`;
+            shopifyQuery = `title:*${searchTerm}* OR handle:*${searchTerm}* OR vendor:*${searchTerm}*`;
         }
         const variables = {
             query: shopifyQuery || undefined,
@@ -84,9 +84,9 @@ async function searchProducts() {
         });
         // Handle empty results with helpful messages
         if (options.length === 0) {
-            if (filter.trim()) {
+            if (searchTerm.trim()) {
                 return [{
-                        name: `No products found for "${filter}"`,
+                        name: `No products found for "${searchTerm}"`,
                         value: '',
                         description: 'Try a different search term or check spelling',
                     }];
