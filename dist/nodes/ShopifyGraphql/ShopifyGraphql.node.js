@@ -305,6 +305,176 @@ class ShopifyGraphql {
                         },
                     ],
                 },
+                // Order Filters (Phase 1: Core Business Filters)
+                {
+                    displayName: 'Order Filters',
+                    name: 'orderFilters',
+                    type: 'collection',
+                    placeholder: 'Add filter',
+                    default: {},
+                    displayOptions: {
+                        show: {
+                            resource: ['order'],
+                            operation: ['getAll', 'search'],
+                        },
+                    },
+                    options: [
+                        {
+                            displayName: 'Tag',
+                            name: 'tag',
+                            type: 'string',
+                            default: '',
+                            description: 'Filter orders by tag (e.g., "priority", "wholesale")',
+                        },
+                        {
+                            displayName: 'Exclude Tag',
+                            name: 'tagNot',
+                            type: 'string',
+                            default: '',
+                            description: 'Exclude orders with this tag',
+                        },
+                        {
+                            displayName: 'Order Status',
+                            name: 'status',
+                            type: 'options',
+                            default: '',
+                            description: 'Filter by order status',
+                            options: [
+                                {
+                                    name: 'Any Status',
+                                    value: '',
+                                },
+                                {
+                                    name: 'Open',
+                                    value: 'open',
+                                },
+                                {
+                                    name: 'Closed',
+                                    value: 'closed',
+                                },
+                                {
+                                    name: 'Cancelled',
+                                    value: 'cancelled',
+                                },
+                                {
+                                    name: 'Not Closed',
+                                    value: 'not_closed',
+                                },
+                            ],
+                        },
+                        {
+                            displayName: 'Financial Status',
+                            name: 'financialStatus',
+                            type: 'options',
+                            default: '',
+                            description: 'Filter by payment status',
+                            options: [
+                                {
+                                    name: 'Any Payment Status',
+                                    value: '',
+                                },
+                                {
+                                    name: 'Paid',
+                                    value: 'paid',
+                                },
+                                {
+                                    name: 'Pending',
+                                    value: 'pending',
+                                },
+                                {
+                                    name: 'Authorized',
+                                    value: 'authorized',
+                                },
+                                {
+                                    name: 'Partially Paid',
+                                    value: 'partially_paid',
+                                },
+                                {
+                                    name: 'Partially Refunded',
+                                    value: 'partially_refunded',
+                                },
+                                {
+                                    name: 'Refunded',
+                                    value: 'refunded',
+                                },
+                                {
+                                    name: 'Voided',
+                                    value: 'voided',
+                                },
+                                {
+                                    name: 'Expired',
+                                    value: 'expired',
+                                },
+                            ],
+                        },
+                        {
+                            displayName: 'Fulfillment Status',
+                            name: 'fulfillmentStatus',
+                            type: 'options',
+                            default: '',
+                            description: 'Filter by shipping/fulfillment status',
+                            options: [
+                                {
+                                    name: 'Any Fulfillment Status',
+                                    value: '',
+                                },
+                                {
+                                    name: 'Unfulfilled',
+                                    value: 'unfulfilled',
+                                },
+                                {
+                                    name: 'Unshipped',
+                                    value: 'unshipped',
+                                },
+                                {
+                                    name: 'Shipped',
+                                    value: 'shipped',
+                                },
+                                {
+                                    name: 'Fulfilled',
+                                    value: 'fulfilled',
+                                },
+                                {
+                                    name: 'Partial',
+                                    value: 'partial',
+                                },
+                                {
+                                    name: 'Scheduled',
+                                    value: 'scheduled',
+                                },
+                                {
+                                    name: 'On Hold',
+                                    value: 'on_hold',
+                                },
+                                {
+                                    name: 'Request Declined',
+                                    value: 'request_declined',
+                                },
+                            ],
+                        },
+                        {
+                            displayName: 'Order Number',
+                            name: 'orderName',
+                            type: 'string',
+                            default: '',
+                            description: 'Filter by order number/name (e.g., "#1001", "1001-A")',
+                        },
+                        {
+                            displayName: 'Customer ID',
+                            name: 'customerId',
+                            type: 'string',
+                            default: '',
+                            description: 'Filter by customer ID',
+                        },
+                        {
+                            displayName: 'Customer Email',
+                            name: 'customerEmail',
+                            type: 'string',
+                            default: '',
+                            description: 'Filter by customer email address',
+                        },
+                    ],
+                },
                 // Orders advanced options
                 {
                     displayName: 'Orders Advanced Options',
@@ -889,6 +1059,35 @@ class ShopifyGraphql {
                             // Extract date part only (YYYY-MM-DD) from n8n datetime
                             const beforeDate = createdBefore.split(' ')[0];
                             queryFilters.push(`created_at:<=${beforeDate}`);
+                        }
+                        // Phase 1: Core Business Filters
+                        const orderFilters = this.getNodeParameter('orderFilters', i, {});
+                        // Tag filters
+                        if (orderFilters.tag) {
+                            queryFilters.push(`tag:${orderFilters.tag}`);
+                        }
+                        if (orderFilters.tagNot) {
+                            queryFilters.push(`tag_not:${orderFilters.tagNot}`);
+                        }
+                        // Status filters
+                        if (orderFilters.status) {
+                            queryFilters.push(`status:${orderFilters.status}`);
+                        }
+                        if (orderFilters.financialStatus) {
+                            queryFilters.push(`financial_status:${orderFilters.financialStatus}`);
+                        }
+                        if (orderFilters.fulfillmentStatus) {
+                            queryFilters.push(`fulfillment_status:${orderFilters.fulfillmentStatus}`);
+                        }
+                        // Order identification filters
+                        if (orderFilters.orderName) {
+                            queryFilters.push(`name:${orderFilters.orderName}`);
+                        }
+                        if (orderFilters.customerId) {
+                            queryFilters.push(`customer_id:${orderFilters.customerId}`);
+                        }
+                        if (orderFilters.customerEmail) {
+                            queryFilters.push(`email:${orderFilters.customerEmail}`);
                         }
                         const queryString = queryFilters.length > 0 ? queryFilters.join(' AND ') : '';
                         // Build GraphQL query with proper variable for query parameter (Claude's fix)
