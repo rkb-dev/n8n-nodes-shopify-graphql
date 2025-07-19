@@ -23,6 +23,9 @@ import {
 	loadProducts,
 	loadCustomers,
 	loadMetafields,
+	loadOrders,
+	loadCollections,
+	loadLocations,
 } from './methods';
 
 export class ShopifyGraphqlModular implements INodeType {
@@ -83,6 +86,15 @@ export class ShopifyGraphqlModular implements INodeType {
 			},
 			async loadMetafields(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				return await loadMetafields.call(this);
+			},
+			async loadOrders(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				return await loadOrders.call(this);
+			},
+			async loadCollections(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				return await loadCollections.call(this);
+			},
+			async loadLocations(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				return await loadLocations.call(this);
 			},
 		},
 	};

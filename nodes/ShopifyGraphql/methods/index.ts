@@ -1,6 +1,9 @@
 import { loadMetafields } from './loadMetafields';
 import { loadProducts } from './loadProducts';
 import { loadCustomers } from './loadCustomers';
+import { loadOrders } from './loadOrders';
+import { loadCollections } from './loadCollections';
+import { loadLocations } from './loadLocations';
 
 // Export all dynamic loading methods for n8n loadOptions
 export const loadOptionsMethods = {
@@ -8,11 +11,11 @@ export const loadOptionsMethods = {
 	loadProducts,
 	loadCustomers,
 	loadMetafields,
+	loadOrders,
+	loadCollections,
+	loadLocations,
 	
 	// Medium Priority - Enhanced Functionality (Phase 2)
-	// loadOrders,
-	// loadCollections,
-	// loadLocations,
 	// loadProductVariants,
 	
 	// Low Priority - Advanced Features (Phase 3)
@@ -26,3 +29,6 @@ export type LoadOptionsMethodName = keyof typeof loadOptionsMethods;
 export { loadMetafields } from './loadMetafields';
 export { loadProducts } from './loadProducts';
 export { loadCustomers } from './loadCustomers';
+export { loadOrders } from './loadOrders';
+export { loadCollections } from './loadCollections';
+export { loadLocations } from './loadLocations';
