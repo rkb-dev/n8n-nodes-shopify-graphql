@@ -1,8 +1,10 @@
 import type {
 	IExecuteFunctions,
+	ILoadOptionsFunctions,
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
+	INodePropertyOptions,
 } from 'n8n-workflow';
 
 import { NodeConnectionType } from 'n8n-workflow';
@@ -16,6 +18,12 @@ import {
 	executeCustomerGet,
 	executeOrderGet,
 } from './actions';
+
+import {
+	loadProducts,
+	loadCustomers,
+	loadMetafields,
+} from './methods';
 
 export class ShopifyGraphqlModular implements INodeType {
 	description: INodeTypeDescription = {
@@ -61,6 +69,22 @@ export class ShopifyGraphqlModular implements INodeType {
 			},
 			...allActionProperties,
 		],
+	};
+
+	// Dynamic loading methods for improved UX
+	methods = {
+		loadOptions: {
+			// High Priority - Essential Methods
+			async loadProducts(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				return await loadProducts.call(this);
+			},
+			async loadCustomers(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				return await loadCustomers.call(this);
+			},
+			async loadMetafields(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				return await loadMetafields.call(this);
+			},
+		},
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {

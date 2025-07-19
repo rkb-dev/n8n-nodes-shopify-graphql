@@ -4,11 +4,14 @@ import { additionalFieldsCollection, productAdvancedOptionsCollection } from './
 import { buildProductQueryFilters, shouldIncludeMetafields, getProductAdvancedOptions } from './product.filtering';
 
 export const description: INodeProperties[] = [
-	// Product ID field for get operation
+	// Product selection with dynamic loading
 	{
-		displayName: 'Product ID',
+		displayName: 'Product',
 		name: 'productId',
-		type: 'string',
+		type: 'options',
+		typeOptions: {
+			loadOptionsMethod: 'loadProducts',
+		},
 		required: true,
 		displayOptions: {
 			show: {
@@ -17,7 +20,22 @@ export const description: INodeProperties[] = [
 			},
 		},
 		default: '',
-		description: 'The ID of the product to retrieve',
+		description: 'Select product from your Shopify store',
+	},
+	// Manual Product ID (fallback option)
+	{
+		displayName: 'Manual Product ID',
+		name: 'manualProductId',
+		type: 'string',
+		displayOptions: {
+			show: {
+				resource: ['product'],
+				operation: ['get'],
+				productId: ['__manual__'],
+			},
+		},
+		default: '',
+		description: 'Enter product ID manually if not found in dropdown',
 	},
 	// Batch size for getAll operation
 	{
@@ -65,7 +83,16 @@ export async function execute(
 	i: number,
 ): Promise<any> {
 	if (operation === 'get') {
-		const productId = this.getNodeParameter('productId', i) as string;
+		// Handle both dynamic selection and manual entry
+		let productId = this.getNodeParameter('productId', i) as string;
+		if (productId === '__manual__') {
+			productId = this.getNodeParameter('manualProductId', i) as string;
+		}
+		
+		// Extract numeric ID if full GID is provided from dynamic selection
+		if (productId.startsWith('gid://shopify/Product/')) {
+			productId = productId.split('/').pop() || productId;
+		}
 		
 		// Get advanced options for query enhancement
 		const includeMetafields = shouldIncludeMetafields(this, i);

@@ -2,11 +2,14 @@ import type { IExecuteFunctions, INodeProperties } from 'n8n-workflow';
 import { shopifyGraphqlApiRequest, shopifyGraphqlApiRequestAllItems } from '../../GenericFunctions';
 
 export const description: INodeProperties[] = [
-	// Customer ID field for get operation
+	// Customer selection with dynamic loading
 	{
-		displayName: 'Customer ID',
+		displayName: 'Customer',
 		name: 'customerId',
-		type: 'string',
+		type: 'options',
+		typeOptions: {
+			loadOptionsMethod: 'loadCustomers',
+		},
 		required: true,
 		displayOptions: {
 			show: {
@@ -15,7 +18,7 @@ export const description: INodeProperties[] = [
 			},
 		},
 		default: '',
-		description: 'The ID of the customer to retrieve',
+		description: 'Select customer from your Shopify store',
 	},
 	// Search Query field for search operation
 	{
