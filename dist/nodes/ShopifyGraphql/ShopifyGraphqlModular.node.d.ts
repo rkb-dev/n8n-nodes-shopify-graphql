@@ -1,7 +1,10 @@
-import type { IExecuteFunctions, ILoadOptionsFunctions, INodeExecutionData, INodeType, INodeTypeDescription, INodePropertyOptions } from 'n8n-workflow';
+import type { IExecuteFunctions, ILoadOptionsFunctions, INodeExecutionData, INodeListSearchResult, INodePropertyOptions, INodeType, INodeTypeDescription } from 'n8n-workflow';
 export declare class ShopifyGraphqlModular implements INodeType {
     description: INodeTypeDescription;
     methods: {
+        listSearch: {
+            searchCollections(this: ILoadOptionsFunctions, query?: string): Promise<INodeListSearchResult>;
+        };
         loadOptions: {
             loadProducts(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;
             loadCustomers(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;
@@ -9,7 +12,6 @@ export declare class ShopifyGraphqlModular implements INodeType {
             loadOrders(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;
             loadCollections(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;
             loadLocations(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;
-            searchCollections(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;
             loadProductVariants(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;
             loadProductTypes(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;
             loadVendors(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;

@@ -90,6 +90,77 @@ class ShopifyGraphqlModular {
         };
         // Dynamic loading methods for improved UX
         this.methods = {
+            // Search methods for resource locators (n8n listSearch pattern)
+            listSearch: {
+                async searchCollections(query) {
+                    var _a, _b;
+                    try {
+                        // Build GraphQL query with optional search functionality
+                        const graphqlQuery = `
+						query CollectionsSearch($first: Int!, $query: String) {
+							collections(first: $first, sortKey: TITLE, query: $query) {
+								edges {
+									node {
+										id
+										title
+										handle
+										productsCount
+										sortOrder
+										description
+										updatedAt
+									}
+								}
+							}
+						}
+					`;
+                        // Include search term in variables if provided
+                        const variables = { first: 50 };
+                        if (query) {
+                            // Use Shopify's search syntax for title and handle
+                            variables.query = `title:*${query}* OR handle:*${query}*`;
+                        }
+                        // Use the correct API request pattern
+                        const credentials = await this.getCredentials('shopifyGraphqlApi');
+                        const requestOptions = {
+                            method: 'POST',
+                            body: { query: graphqlQuery, variables },
+                            uri: `https://${credentials.shopName}.myshopify.com/admin/api/${credentials.apiVersion}/graphql.json`,
+                            json: true,
+                            headers: {
+                                'X-Shopify-Access-Token': credentials.accessToken,
+                                'Content-Type': 'application/json',
+                            },
+                        };
+                        const response = await this.helpers.request(requestOptions);
+                        const results = [];
+                        if ((_b = (_a = response.data) === null || _a === void 0 ? void 0 : _a.collections) === null || _b === void 0 ? void 0 : _b.edges) {
+                            for (const edge of response.data.collections.edges) {
+                                const collection = edge.node;
+                                // Collection type indicator based on sort order
+                                const typeIcon = collection.sortOrder === 'MANUAL' ? '📋' :
+                                    collection.sortOrder === 'BEST_SELLING' ? '🔥' :
+                                        collection.sortOrder === 'CREATED' ? '🆕' :
+                                            collection.sortOrder === 'PRICE' ? '💰' : '📚';
+                                const displayName = `${typeIcon} ${collection.title}`;
+                                const description = [
+                                    `${collection.productsCount} products`,
+                                    `Sort: ${collection.sortOrder}`,
+                                    `Handle: ${collection.handle}`
+                                ].join(' | ');
+                                results.push({
+                                    name: displayName,
+                                    value: collection.id,
+                                    description,
+                                });
+                            }
+                        }
+                        return { results };
+                    }
+                    catch (error) {
+                        return { results: [] };
+                    }
+                },
+            },
             loadOptions: {
                 // High Priority - Essential Methods
                 async loadProducts() {
@@ -109,10 +180,6 @@ class ShopifyGraphqlModular {
                 },
                 async loadLocations() {
                     return await methods_1.loadLocations.call(this);
-                },
-                // Resource Locator Search Methods
-                async searchCollections() {
-                    return await methods_1.searchCollections.call(this);
                 },
                 // Advanced Methods - Enhanced Functionality
                 async loadProductVariants() {

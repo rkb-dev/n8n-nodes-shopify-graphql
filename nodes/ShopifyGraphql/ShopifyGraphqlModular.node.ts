@@ -2,9 +2,10 @@ import type {
 	IExecuteFunctions,
 	ILoadOptionsFunctions,
 	INodeExecutionData,
+	INodeListSearchResult,
+	INodePropertyOptions,
 	INodeType,
 	INodeTypeDescription,
-	INodePropertyOptions,
 } from 'n8n-workflow';
 
 import { NodeConnectionType } from 'n8n-workflow';
@@ -98,6 +99,86 @@ export class ShopifyGraphqlModular implements INodeType {
 
 	// Dynamic loading methods for improved UX
 	methods = {
+		// Search methods for resource locators (n8n listSearch pattern)
+		listSearch: {
+			async searchCollections(
+				this: ILoadOptionsFunctions,
+				query?: string,
+			): Promise<INodeListSearchResult> {
+				try {
+					// Build GraphQL query with optional search functionality
+					const graphqlQuery = `
+						query CollectionsSearch($first: Int!, $query: String) {
+							collections(first: $first, sortKey: TITLE, query: $query) {
+								edges {
+									node {
+										id
+										title
+										handle
+										productsCount
+										sortOrder
+										description
+										updatedAt
+									}
+								}
+							}
+						}
+					`;
+
+					// Include search term in variables if provided
+					const variables: any = { first: 50 };
+					if (query) {
+						// Use Shopify's search syntax for title and handle
+						variables.query = `title:*${query}* OR handle:*${query}*`;
+					}
+					
+					// Use the correct API request pattern
+					const credentials = await this.getCredentials('shopifyGraphqlApi');
+					const requestOptions = {
+						method: 'POST' as const,
+						body: { query: graphqlQuery, variables },
+						uri: `https://${credentials.shopName}.myshopify.com/admin/api/${credentials.apiVersion}/graphql.json`,
+						json: true,
+						headers: {
+							'X-Shopify-Access-Token': credentials.accessToken,
+							'Content-Type': 'application/json',
+						},
+					};
+					const response = await this.helpers.request(requestOptions);
+
+					const results = [];
+					if (response.data?.collections?.edges) {
+						for (const edge of response.data.collections.edges) {
+							const collection = edge.node;
+							
+							// Collection type indicator based on sort order
+							const typeIcon = collection.sortOrder === 'MANUAL' ? '📋' : 
+											collection.sortOrder === 'BEST_SELLING' ? '🔥' : 
+											collection.sortOrder === 'CREATED' ? '🆕' : 
+											collection.sortOrder === 'PRICE' ? '💰' : '📚';
+							
+							const displayName = `${typeIcon} ${collection.title}`;
+							
+							const description = [
+								`${collection.productsCount} products`,
+								`Sort: ${collection.sortOrder}`,
+								`Handle: ${collection.handle}`
+							].join(' | ');
+
+							results.push({
+								name: displayName,
+								value: collection.id,
+								description,
+							});
+						}
+					}
+
+					return { results };
+				} catch (error) {
+					return { results: [] };
+				}
+			},
+		},
 		loadOptions: {
 			// High Priority - Essential Methods
 			async loadProducts(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
@@ -119,11 +200,6 @@ export class ShopifyGraphqlModular implements INodeType {
 				return await loadLocations.call(this);
 			},
 			
-			// Resource Locator Search Methods
-			async searchCollections(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-				return await searchCollections.call(this);
-			},
-			
 			// Advanced Methods - Enhanced Functionality
 			async loadProductVariants(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				return await loadProductVariants.call(this);
@@ -134,7 +210,6 @@ export class ShopifyGraphqlModular implements INodeType {
 			async loadVendors(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				return await loadVendors.call(this);
 			},
-			
 
 		},
 	};
