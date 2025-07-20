@@ -104,7 +104,7 @@ export const description: INodeProperties[] = [
 		default: '',
 		description: 'The type or category of the product',
 	},
-	// Collection selection with dynamic loading
+	// Simple collection selection (optional)
 	{
 		displayName: 'Add to Collection',
 		name: 'collectionId',
@@ -120,21 +120,6 @@ export const description: INodeProperties[] = [
 		},
 		default: '',
 		description: 'Select collection to add this product to (optional)',
-	},
-	// Manual Collection ID (fallback option)
-	{
-		displayName: 'Manual Collection ID',
-		name: 'manualCollectionId',
-		type: 'string',
-		displayOptions: {
-			show: {
-				resource: ['product'],
-				operation: ['create'],
-				collectionId: ['__manual__'],
-			},
-		},
-		default: '',
-		description: 'Enter collection ID manually if not found in dropdown',
 	},
 	// Product Metafields Collection
 	{
@@ -160,25 +145,10 @@ export const description: INodeProperties[] = [
 					{
 						displayName: 'Namespace',
 						name: 'namespace',
-						type: 'options',
-						typeOptions: {
-							loadOptionsMethod: 'loadMetafields',
-						},
+						type: 'string',
 						required: true,
 						default: 'custom',
-						description: 'Select metafield namespace from your Shopify store',
-					},
-					{
-						displayName: 'Manual Namespace',
-						name: 'manualNamespace',
-						type: 'string',
-						displayOptions: {
-							show: {
-								namespace: ['__manual__'],
-							},
-						},
-						default: 'custom',
-						description: 'Enter namespace manually if not found in dropdown',
+						description: 'Metafield namespace (e.g., custom, app, etc.)',
 					},
 					{
 						displayName: 'Key',
@@ -258,17 +228,8 @@ export async function execute(
 	const productVendor = this.getNodeParameter('productVendor', i, '') as string;
 	const productType = this.getNodeParameter('productType', i, '') as string;
 	
-	// Handle dynamic collection selection with manual fallback
 	let collectionId = this.getNodeParameter('collectionId', i, '') as string;
-	if (collectionId === '__manual__') {
-		collectionId = this.getNodeParameter('manualCollectionId', i, '') as string;
-	}
 	
-	// Ensure collection ID is in GID format if provided
-	if (collectionId && !collectionId.startsWith('gid://shopify/Collection/')) {
-		collectionId = `gid://shopify/Collection/${collectionId}`;
-	}
-
 	// Get advanced features (these will be moved to separate fields later)
 	const productVariants = this.getNodeParameter('productVariants', i, {}) as any;
 	const productImages = this.getNodeParameter('productImages', i, {}) as any;
@@ -280,6 +241,14 @@ export async function execute(
 		title: productTitle,
 		status: productStatus,
 	};
+	
+	// Handle collection assignment
+	if (collectionId) {
+		if (!collectionId.startsWith('gid://shopify/Collection/')) {
+			collectionId = `gid://shopify/Collection/${collectionId}`;
+		}
+		productInput.collectionsToJoin = [collectionId];
+	}
 
 	if (productDescription) productInput.descriptionHtml = productDescription;
 	if (productHandle) productInput.handle = productHandle;

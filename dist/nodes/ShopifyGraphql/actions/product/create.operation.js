@@ -105,7 +105,7 @@ exports.description = [
         default: '',
         description: 'The type or category of the product',
     },
-    // Collection selection with dynamic loading
+    // Simple collection selection (optional)
     {
         displayName: 'Add to Collection',
         name: 'collectionId',
@@ -121,21 +121,6 @@ exports.description = [
         },
         default: '',
         description: 'Select collection to add this product to (optional)',
-    },
-    // Manual Collection ID (fallback option)
-    {
-        displayName: 'Manual Collection ID',
-        name: 'manualCollectionId',
-        type: 'string',
-        displayOptions: {
-            show: {
-                resource: ['product'],
-                operation: ['create'],
-                collectionId: ['__manual__'],
-            },
-        },
-        default: '',
-        description: 'Enter collection ID manually if not found in dropdown',
     },
     // Product Metafields Collection
     {
@@ -161,25 +146,10 @@ exports.description = [
                     {
                         displayName: 'Namespace',
                         name: 'namespace',
-                        type: 'options',
-                        typeOptions: {
-                            loadOptionsMethod: 'loadMetafields',
-                        },
+                        type: 'string',
                         required: true,
                         default: 'custom',
-                        description: 'Select metafield namespace from your Shopify store',
-                    },
-                    {
-                        displayName: 'Manual Namespace',
-                        name: 'manualNamespace',
-                        type: 'string',
-                        displayOptions: {
-                            show: {
-                                namespace: ['__manual__'],
-                            },
-                        },
-                        default: 'custom',
-                        description: 'Enter namespace manually if not found in dropdown',
+                        description: 'Metafield namespace (e.g., custom, app, etc.)',
                     },
                     {
                         displayName: 'Key',
@@ -254,15 +224,7 @@ async function execute(i) {
     const productStatus = this.getNodeParameter('productStatus', i, 'DRAFT');
     const productVendor = this.getNodeParameter('productVendor', i, '');
     const productType = this.getNodeParameter('productType', i, '');
-    // Handle dynamic collection selection with manual fallback
     let collectionId = this.getNodeParameter('collectionId', i, '');
-    if (collectionId === '__manual__') {
-        collectionId = this.getNodeParameter('manualCollectionId', i, '');
-    }
-    // Ensure collection ID is in GID format if provided
-    if (collectionId && !collectionId.startsWith('gid://shopify/Collection/')) {
-        collectionId = `gid://shopify/Collection/${collectionId}`;
-    }
     // Get advanced features (these will be moved to separate fields later)
     const productVariants = this.getNodeParameter('productVariants', i, {});
     const productImages = this.getNodeParameter('productImages', i, {});
@@ -273,6 +235,13 @@ async function execute(i) {
         title: productTitle,
         status: productStatus,
     };
+    // Handle collection assignment
+    if (collectionId) {
+        if (!collectionId.startsWith('gid://shopify/Collection/')) {
+            collectionId = `gid://shopify/Collection/${collectionId}`;
+        }
+        productInput.collectionsToJoin = [collectionId];
+    }
     if (productDescription)
         productInput.descriptionHtml = productDescription;
     if (productHandle)

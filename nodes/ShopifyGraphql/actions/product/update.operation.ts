@@ -20,7 +20,20 @@ export const description: INodeProperties[] = [
 		default: '',
 		description: 'Select the product to update',
 	},
-
+	// Product Title field
+	{
+		displayName: 'Product Title',
+		name: 'productTitle',
+		type: 'string',
+		displayOptions: {
+			show: {
+				resource: ['product'],
+				operation: ['update'],
+			},
+		},
+		default: '',
+		description: 'The title of the product',
+	},
 	// Product Description field
 	{
 		displayName: 'Product Description',
@@ -108,6 +121,128 @@ export const description: INodeProperties[] = [
 		default: '',
 		description: 'The type or category of the product',
 	},
+	// Product Tags field
+	{
+		displayName: 'Tags',
+		name: 'productTags',
+		type: 'string',
+		displayOptions: {
+			show: {
+				resource: ['product'],
+				operation: ['update'],
+			},
+		},
+		default: '',
+		description: 'Comma-separated list of product tags',
+	},
+	// Simple collection selection (optional)
+	{
+		displayName: 'Add to Collection',
+		name: 'collectionId',
+		type: 'options',
+		typeOptions: {
+			loadOptionsMethod: 'loadCollections',
+		},
+		displayOptions: {
+			show: {
+				resource: ['product'],
+				operation: ['update'],
+			},
+		},
+		default: '',
+		description: 'Select collection to add this product to (optional)',
+	},
+	// Product Metafields Collection (values only, no type needed)
+	{
+		displayName: 'Product Metafields',
+		name: 'productMetafields',
+		type: 'fixedCollection',
+		typeOptions: {
+			multipleValues: true,
+		},
+		displayOptions: {
+			show: {
+				resource: ['product'],
+				operation: ['update'],
+			},
+		},
+		default: {},
+		description: 'Update metafield values for existing metafield definitions',
+		options: [
+			{
+				name: 'metafield',
+				displayName: 'Metafield',
+				values: [
+					{
+						displayName: 'Namespace',
+						name: 'namespace',
+						type: 'string',
+						required: true,
+						default: 'custom',
+						description: 'Metafield namespace (e.g., custom, app, etc.)',
+					},
+					{
+						displayName: 'Key',
+						name: 'key',
+						type: 'string',
+						required: true,
+						default: '',
+						description: 'Metafield key identifier',
+					},
+					{
+						displayName: 'Value',
+						name: 'value',
+						type: 'string',
+						required: true,
+						default: '',
+						description: 'Metafield value to set',
+					},
+				],
+			},
+		],
+	},
+	// SEO Settings Collection
+	{
+		displayName: 'SEO Settings',
+		name: 'seoSettings',
+		type: 'fixedCollection',
+		typeOptions: {
+			multipleValues: false,
+		},
+		displayOptions: {
+			show: {
+				resource: ['product'],
+				operation: ['update'],
+			},
+		},
+		default: {},
+		description: 'SEO settings for the product',
+		options: [
+			{
+				name: 'seo',
+				displayName: 'SEO',
+				values: [
+					{
+						displayName: 'SEO Title',
+						name: 'title',
+						type: 'string',
+						default: '',
+						description: 'SEO title for search engines',
+					},
+					{
+						displayName: 'SEO Description',
+						name: 'description',
+						type: 'string',
+						typeOptions: {
+							rows: 3,
+						},
+						default: '',
+						description: 'SEO description for search engines',
+					},
+				],
+			},
+		],
+	},
 ];
 
 export async function execute(
@@ -124,23 +259,64 @@ export async function execute(
 	
 
 	
-	// Get traditional product fields
+	// Get all product fields
+	const productTitle = this.getNodeParameter('productTitle', i, '') as string;
 	const productDescription = this.getNodeParameter('productDescription', i, '') as string;
 	const productHandle = this.getNodeParameter('productHandle', i, '') as string;
 	const productStatus = this.getNodeParameter('productStatus', i, '') as string;
 	const productVendor = this.getNodeParameter('productVendor', i, '') as string;
 	const productType = this.getNodeParameter('productType', i, '') as string;
+	const productTags = this.getNodeParameter('productTags', i, '') as string;
+	const collectionId = this.getNodeParameter('collectionId', i, '') as string;
+	const productMetafields = this.getNodeParameter('productMetafields', i, {}) as any;
+	const seoSettings = this.getNodeParameter('seoSettings', i, {}) as any;
 
 	// Build product input object with only provided fields
 	const productInput: any = {
 		id: `gid://shopify/Product/${productId}`,
 	};
 
+	if (productTitle) productInput.title = productTitle;
 	if (productDescription) productInput.descriptionHtml = productDescription;
 	if (productHandle) productInput.handle = productHandle;
 	if (productStatus) productInput.status = productStatus;
 	if (productVendor) productInput.vendor = productVendor;
 	if (productType) productInput.productType = productType;
+	
+	// Handle tags (convert comma-separated string to array)
+	if (productTags) {
+		const tagsArray = productTags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+		if (tagsArray.length > 0) {
+			productInput.tags = tagsArray;
+		}
+	}
+	
+	// Handle collection assignment
+	if (collectionId) {
+		if (!collectionId.startsWith('gid://shopify/Collection/')) {
+			const finalCollectionId = `gid://shopify/Collection/${collectionId}`;
+			productInput.collectionsToJoin = [finalCollectionId];
+		} else {
+			productInput.collectionsToJoin = [collectionId];
+		}
+	}
+	
+	// Handle SEO settings
+	if (seoSettings && seoSettings.seo && seoSettings.seo.length > 0) {
+		const seo = seoSettings.seo[0];
+		productInput.seo = {};
+		if (seo.title) productInput.seo.title = seo.title;
+		if (seo.description) productInput.seo.description = seo.description;
+	}
+	
+	// Handle metafields (values only, no type needed for updates)
+	if (productMetafields && productMetafields.metafield && productMetafields.metafield.length > 0) {
+		productInput.metafields = productMetafields.metafield.map((metafield: any) => ({
+			namespace: metafield.namespace,
+			key: metafield.key,
+			value: metafield.value,
+		}));
+	}
 	
 
 
@@ -160,6 +336,28 @@ export async function execute(
 						status
 						createdAt
 						updatedAt
+						collections(first: 10) {
+							edges {
+								node {
+									id
+									title
+								}
+							}
+						}
+						metafields(first: 20) {
+							edges {
+								node {
+									id
+									namespace
+									key
+									value
+								}
+							}
+						}
+						seo {
+							title
+							description
+						}
 					}
 					userErrors {
 						field

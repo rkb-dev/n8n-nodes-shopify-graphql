@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.execute = exports.description = void 0;
 const GenericFunctions_1 = require("../../GenericFunctions");
 exports.description = [
-    // Product selection with dynamic loading
+    // Simple product selection
     {
         displayName: 'Product',
         name: 'productId',
@@ -19,22 +19,7 @@ exports.description = [
             },
         },
         default: '',
-        description: 'Select product to delete from your Shopify store',
-    },
-    // Manual Product ID (fallback option)
-    {
-        displayName: 'Manual Product ID',
-        name: 'manualProductId',
-        type: 'string',
-        displayOptions: {
-            show: {
-                resource: ['product'],
-                operation: ['delete'],
-                productId: ['__manual__'],
-            },
-        },
-        default: '',
-        description: 'Enter product ID manually if not found in dropdown',
+        description: 'Select the product to delete',
     },
 ];
 async function execute(i) {
