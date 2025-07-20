@@ -139,7 +139,7 @@ export const description: INodeProperties[] = [
 		default: '',
 		description: 'Comma-separated list of product tags',
 	},
-	// Collection selection with resource locator (searchable)
+	// Collection selection with resource locator (searchable) - with searchFilterRequired fix
 	{
 		displayName: 'Add to Collection',
 		name: 'collectionId',
@@ -154,6 +154,7 @@ export const description: INodeProperties[] = [
 				typeOptions: {
 					searchListMethod: 'searchCollections',
 					searchable: true,
+					searchFilterRequired: false,
 				},
 			},
 			{
