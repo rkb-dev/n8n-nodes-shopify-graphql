@@ -2,9 +2,34 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.searchCollections = void 0;
 async function searchCollections() {
-    var _a, _b;
+    var _a, _b, _c;
     const searchTerm = this.getNodeParameter('searchTerm', 0) || '';
     try {
+        // DEBUG: Test credential access first
+        let credentials;
+        try {
+            credentials = await this.getCredentials('shopifyGraphqlApi');
+        }
+        catch (credError) {
+            // Credential access failed - return debug info
+            return [
+                {
+                    name: `🚨 CREDENTIAL ERROR: ${credError.message}`,
+                    value: 'debug_cred_error',
+                    description: `Context: ${typeof this}, getCredentials: ${typeof this.getCredentials}`,
+                },
+            ];
+        }
+        // DEBUG: Show credential info (safely)
+        if (!credentials || !credentials.shopName || !credentials.accessToken) {
+            return [
+                {
+                    name: `🚨 INVALID CREDENTIALS`,
+                    value: 'debug_invalid_creds',
+                    description: `shopName: ${!!(credentials === null || credentials === void 0 ? void 0 : credentials.shopName)}, token: ${!!(credentials === null || credentials === void 0 ? void 0 : credentials.accessToken)}, version: ${credentials === null || credentials === void 0 ? void 0 : credentials.apiVersion}`,
+                },
+            ];
+        }
         // GraphQL query to search collections with optional search term
         const query = `
 			query getCollections($first: Int!, $query: String) {
@@ -26,7 +51,6 @@ async function searchCollections() {
             query: searchTerm ? `title:*${searchTerm}* OR handle:*${searchTerm}*` : undefined,
         };
         // Use the same working direct API request pattern as loadProducts
-        const credentials = await this.getCredentials('shopifyGraphqlApi');
         const requestOptions = {
             method: 'POST',
             body: { query, variables },
@@ -37,8 +61,35 @@ async function searchCollections() {
                 'Content-Type': 'application/json',
             },
         };
-        const response = await this.helpers.request(requestOptions);
-        if (!((_b = (_a = response.data) === null || _a === void 0 ? void 0 : _a.collections) === null || _b === void 0 ? void 0 : _b.edges)) {
+        // DEBUG: Show request details (safely)
+        const debugInfo = {
+            uri: requestOptions.uri,
+            method: requestOptions.method,
+            hasToken: !!credentials.accessToken,
+            tokenLength: ((_a = credentials.accessToken) === null || _a === void 0 ? void 0 : _a.length) || 0,
+            queryLength: query.length,
+            variables: variables,
+        };
+        let response;
+        try {
+            response = await this.helpers.request(requestOptions);
+        }
+        catch (apiError) {
+            // API request failed - return detailed error info
+            return [
+                {
+                    name: `🚨 API ERROR: ${apiError.message || 'Unknown error'}`,
+                    value: 'debug_api_error',
+                    description: `Status: ${apiError.status || 'unknown'}, URI: ${debugInfo.uri}`,
+                },
+                {
+                    name: `🔍 DEBUG INFO`,
+                    value: 'debug_info',
+                    description: `Token: ${debugInfo.hasToken ? 'present' : 'missing'} (${debugInfo.tokenLength} chars), Query: ${debugInfo.queryLength} chars`,
+                },
+            ];
+        }
+        if (!((_c = (_b = response.data) === null || _b === void 0 ? void 0 : _b.collections) === null || _c === void 0 ? void 0 : _c.edges)) {
             return [];
         }
         const collections = response.data.collections.edges.map((edge) => {

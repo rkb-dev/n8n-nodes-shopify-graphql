@@ -7,6 +7,32 @@ export async function searchCollections(
 	const searchTerm = this.getNodeParameter('searchTerm', 0) as string || '';
 	
 	try {
+		// DEBUG: Test credential access first
+		let credentials;
+		try {
+			credentials = await this.getCredentials('shopifyGraphqlApi');
+		} catch (credError: any) {
+			// Credential access failed - return debug info
+			return [
+				{
+					name: `🚨 CREDENTIAL ERROR: ${credError.message}`,
+					value: 'debug_cred_error',
+					description: `Context: ${typeof this}, getCredentials: ${typeof this.getCredentials}`,
+				},
+			];
+		}
+
+		// DEBUG: Show credential info (safely)
+		if (!credentials || !credentials.shopName || !credentials.accessToken) {
+			return [
+				{
+					name: `🚨 INVALID CREDENTIALS`,
+					value: 'debug_invalid_creds',
+					description: `shopName: ${!!credentials?.shopName}, token: ${!!credentials?.accessToken}, version: ${credentials?.apiVersion}`,
+				},
+			];
+		}
+
 		// GraphQL query to search collections with optional search term
 		const query = `
 			query getCollections($first: Int!, $query: String) {
@@ -30,7 +56,6 @@ export async function searchCollections(
 		};
 
 		// Use the same working direct API request pattern as loadProducts
-		const credentials = await this.getCredentials('shopifyGraphqlApi');
 		const requestOptions: IRequestOptions = {
 			method: 'POST' as IHttpRequestMethods,
 			body: { query, variables },
@@ -41,7 +66,35 @@ export async function searchCollections(
 				'Content-Type': 'application/json',
 			},
 		};
-		const response = await this.helpers.request(requestOptions);
+
+		// DEBUG: Show request details (safely)
+		const debugInfo = {
+			uri: requestOptions.uri,
+			method: requestOptions.method,
+			hasToken: !!credentials.accessToken,
+			tokenLength: (credentials.accessToken as string)?.length || 0,
+			queryLength: query.length,
+			variables: variables,
+		};
+
+		let response;
+		try {
+			response = await this.helpers.request(requestOptions);
+		} catch (apiError: any) {
+			// API request failed - return detailed error info
+			return [
+				{
+					name: `🚨 API ERROR: ${apiError.message || 'Unknown error'}`,
+					value: 'debug_api_error',
+					description: `Status: ${apiError.status || 'unknown'}, URI: ${debugInfo.uri}`,
+				},
+				{
+					name: `🔍 DEBUG INFO`,
+					value: 'debug_info',
+					description: `Token: ${debugInfo.hasToken ? 'present' : 'missing'} (${debugInfo.tokenLength} chars), Query: ${debugInfo.queryLength} chars`,
+				},
+			];
+		}
 		
 		if (!response.data?.collections?.edges) {
 			return [];
