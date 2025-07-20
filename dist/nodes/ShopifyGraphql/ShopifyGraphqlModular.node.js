@@ -92,13 +92,14 @@ class ShopifyGraphqlModular {
         this.methods = {
             // Search methods for resource locators (n8n listSearch pattern)
             listSearch: {
-                async searchCollections(query) {
+                async searchCollections(filter, paginationToken) {
                     var _a, _b;
+                    // Debug: searchCollections called with filter and paginationToken
                     try {
                         // Build GraphQL query - different structure based on whether we have a search query
                         let graphqlQuery;
                         let variables;
-                        if (query && query.trim()) {
+                        if (filter && filter.trim()) {
                             // Search query provided - use search syntax
                             graphqlQuery = `
 							query CollectionsSearch($first: Int!, $query: String!) {
@@ -119,7 +120,7 @@ class ShopifyGraphqlModular {
 						`;
                             variables = {
                                 first: 50,
-                                query: `title:*${query.trim()}* OR handle:*${query.trim()}*`
+                                query: `title:*${filter.trim()}* OR handle:*${filter.trim()}*`
                             };
                         }
                         else {
@@ -143,7 +144,7 @@ class ShopifyGraphqlModular {
 						`;
                             variables = { first: 50 };
                         }
-                        // Use the working direct API request pattern (same as loadProducts)
+                        // Use the correct API request pattern
                         const credentials = await this.getCredentials('shopifyGraphqlApi');
                         const requestOptions = {
                             method: 'POST',

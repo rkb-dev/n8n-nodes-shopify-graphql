@@ -103,14 +103,16 @@ export class ShopifyGraphqlModular implements INodeType {
 		listSearch: {
 			async searchCollections(
 				this: ILoadOptionsFunctions,
-				query?: string,
+				filter?: string,
+				paginationToken?: string,
 			): Promise<INodeListSearchResult> {
+				// Debug: searchCollections called with filter and paginationToken
 				try {
 					// Build GraphQL query - different structure based on whether we have a search query
 					let graphqlQuery: string;
 					let variables: any;
 					
-					if (query && query.trim()) {
+					if (filter && filter.trim()) {
 						// Search query provided - use search syntax
 						graphqlQuery = `
 							query CollectionsSearch($first: Int!, $query: String!) {
@@ -131,7 +133,7 @@ export class ShopifyGraphqlModular implements INodeType {
 						`;
 						variables = { 
 							first: 50, 
-							query: `title:*${query.trim()}* OR handle:*${query.trim()}*`
+							query: `title:*${filter.trim()}* OR handle:*${filter.trim()}*`
 						};
 					} else {
 						// No search query - get all collections
@@ -155,7 +157,7 @@ export class ShopifyGraphqlModular implements INodeType {
 						variables = { first: 50 };
 					}
 					
-					// Use the working direct API request pattern (same as loadProducts)
+					// Use the correct API request pattern
 					const credentials = await this.getCredentials('shopifyGraphqlApi');
 					const requestOptions = {
 						method: 'POST' as const,

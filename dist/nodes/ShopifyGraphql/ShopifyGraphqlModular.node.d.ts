@@ -3,7 +3,7 @@ export declare class ShopifyGraphqlModular implements INodeType {
     description: INodeTypeDescription;
     methods: {
         listSearch: {
-            searchCollections(this: ILoadOptionsFunctions, query?: string): Promise<INodeListSearchResult>;
+            searchCollections(this: ILoadOptionsFunctions, filter?: string, paginationToken?: string): Promise<INodeListSearchResult>;
         };
         loadOptions: {
             loadProducts(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;
