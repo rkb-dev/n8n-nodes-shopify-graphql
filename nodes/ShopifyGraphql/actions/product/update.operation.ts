@@ -139,29 +139,20 @@ export const description: INodeProperties[] = [
 		default: '',
 		description: 'Comma-separated list of product tags',
 	},
-	// Collection selection with resource locator (optional)
+	// Collection selection with resource locator (searchable)
 	{
 		displayName: 'Add to Collection',
 		name: 'collectionId',
 		type: 'resourceLocator',
-		typeOptions: {
-			resourceMapper: {
-				resourceMapperMethod: 'getCollectionMappingColumns',
-				mode: 'add',
-				valuesLabel: 'Collection',
-				addAllFields: false,
-				multiKeyMatch: false,
-			},
-			loadOptionsDependsOn: ['resource', 'operation'],
-		},
+		default: { mode: 'list', value: '' },
 		modes: [
 			{
 				displayName: 'From List',
 				name: 'list',
 				type: 'list',
+				placeholder: 'Select a Collection...',
 				typeOptions: {
 					searchListMethod: 'searchCollections',
-					searchFilterRequired: false,
 					searchable: true,
 				},
 			},
@@ -169,6 +160,7 @@ export const description: INodeProperties[] = [
 				displayName: 'By ID',
 				name: 'id',
 				type: 'string',
+				placeholder: 'e.g., 123456789 or gid://shopify/Collection/123456789',
 				validation: [
 					{
 						type: 'regex',
@@ -178,7 +170,10 @@ export const description: INodeProperties[] = [
 						},
 					},
 				],
-				placeholder: 'e.g., 123456789 or gid://shopify/Collection/123456789',
+				extractValue: {
+						type: 'regex',
+						regex: '^(?:gid://shopify/Collection/)?([0-9]+)$',
+					},
 			},
 		],
 		displayOptions: {
@@ -187,8 +182,7 @@ export const description: INodeProperties[] = [
 				operation: ['update'],
 			},
 		},
-		default: { mode: 'list', value: '' },
-		description: 'Select collection to add this product to (optional)',
+		description: 'Select collection to add this product to (optional). Search by typing collection name or handle.',
 	},
 	// Product Metafields Collection (values only, no type needed)
 	{
@@ -335,10 +329,11 @@ export async function execute(
 		
 		// Handle different resource locator modes
 		if (collectionIdParam.mode === 'id') {
-			// Direct ID input - ensure it's clean
-			collectionId = collectionId.replace('gid://shopify/Collection/', '');
+			// Direct ID input - extract clean ID using regex if needed
+			const match = collectionId.match(/^(?:gid:\/\/shopify\/Collection\/)?([0-9]+)$/);
+			collectionId = match ? match[1] : collectionId;
 		} else if (collectionIdParam.mode === 'list') {
-			// From search list - already clean ID
+			// From search list - already clean ID from searchCollections method
 			// collectionId is already the clean ID
 		}
 		

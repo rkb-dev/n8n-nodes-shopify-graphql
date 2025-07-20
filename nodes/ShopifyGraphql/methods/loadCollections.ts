@@ -6,9 +6,9 @@ import type { ILoadOptionsFunctions, INodePropertyOptions, IRequestOptions, IHtt
  */
 export async function loadCollections(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 	try {
-		// Optimized query for 50 collections per request (research spec recommendation)
+		// Standard query for loading all collections (no search filtering at method level)
 		const query = `
-			query CollectionsLoadOptions($first: Int = 50) {
+			query CollectionsLoadOptions($first: Int!) {
 				collections(first: $first, sortKey: TITLE) {
 					edges {
 						node {
