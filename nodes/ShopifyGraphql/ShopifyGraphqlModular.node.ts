@@ -106,7 +106,7 @@ export class ShopifyGraphqlModular implements INodeType {
 				filter?: string,
 				paginationToken?: string,
 			): Promise<INodeListSearchResult> {
-				// Debug: searchCollections called with filter and paginationToken
+				// DEBUG: Method called - will return results or empty array
 				try {
 					// Build GraphQL query - different structure based on whether we have a search query
 					let graphqlQuery: string;

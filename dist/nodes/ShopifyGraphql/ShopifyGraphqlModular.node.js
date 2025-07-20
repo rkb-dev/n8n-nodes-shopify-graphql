@@ -94,7 +94,7 @@ class ShopifyGraphqlModular {
             listSearch: {
                 async searchCollections(filter, paginationToken) {
                     var _a, _b;
-                    // Debug: searchCollections called with filter and paginationToken
+                    // DEBUG: Method called - will return results or empty array
                     try {
                         // Build GraphQL query - different structure based on whether we have a search query
                         let graphqlQuery;
