@@ -33,13 +33,13 @@ const methods_1 = require("./methods");
 class ShopifyGraphqlModular {
     constructor() {
         this.description = {
-            displayName: 'Shopify GraphQL Dynamic',
+            displayName: 'Shopify GraphQL Enhanced',
             name: 'shopifyGraphqlModular',
-            icon: 'file:shopify-dynamic.svg',
+            icon: 'file:shopify.svg',
             group: ['transform'],
             version: 2,
             subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
-            description: 'Shopify GraphQL with Dynamic Loading & Smart Dropdowns (v2.0 - Latest)',
+            description: 'Shopify GraphQL with Enhanced Product Updates & Comprehensive Fields (v2.2.0 - Latest)',
             defaults: {
                 name: 'Shopify GraphQL Dynamic',
             },
