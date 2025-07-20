@@ -95,29 +95,53 @@ class ShopifyGraphqlModular {
                 async searchCollections(query) {
                     var _a, _b;
                     try {
-                        // Build GraphQL query with optional search functionality
-                        const graphqlQuery = `
-						query CollectionsSearch($first: Int!, $query: String) {
-							collections(first: $first, sortKey: TITLE, query: $query) {
-								edges {
-									node {
-										id
-										title
-										handle
-										productsCount
-										sortOrder
-										description
-										updatedAt
+                        // Build GraphQL query - different structure based on whether we have a search query
+                        let graphqlQuery;
+                        let variables;
+                        if (query && query.trim()) {
+                            // Search query provided - use search syntax
+                            graphqlQuery = `
+							query CollectionsSearch($first: Int!, $query: String!) {
+								collections(first: $first, sortKey: TITLE, query: $query) {
+									edges {
+										node {
+											id
+											title
+											handle
+											productsCount
+											sortOrder
+											description
+											updatedAt
+										}
 									}
 								}
 							}
-						}
-					`;
-                        // Include search term in variables if provided
-                        const variables = { first: 50 };
-                        if (query) {
-                            // Use Shopify's search syntax for title and handle
-                            variables.query = `title:*${query}* OR handle:*${query}*`;
+						`;
+                            variables = {
+                                first: 50,
+                                query: `title:*${query.trim()}* OR handle:*${query.trim()}*`
+                            };
+                        }
+                        else {
+                            // No search query - get all collections
+                            graphqlQuery = `
+							query CollectionsAll($first: Int!) {
+								collections(first: $first, sortKey: TITLE) {
+									edges {
+										node {
+											id
+											title
+											handle
+											productsCount
+											sortOrder
+											description
+											updatedAt
+										}
+									}
+								}
+							}
+						`;
+                            variables = { first: 50 };
                         }
                         // Use the correct API request pattern
                         const credentials = await this.getCredentials('shopifyGraphqlApi');
@@ -133,6 +157,10 @@ class ShopifyGraphqlModular {
                         };
                         const response = await this.helpers.request(requestOptions);
                         const results = [];
+                        // Check for GraphQL errors first
+                        if (response.errors) {
+                            return { results: [] };
+                        }
                         if ((_b = (_a = response.data) === null || _a === void 0 ? void 0 : _a.collections) === null || _b === void 0 ? void 0 : _b.edges) {
                             for (const edge of response.data.collections.edges) {
                                 const collection = edge.node;
