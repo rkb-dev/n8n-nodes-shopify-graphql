@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loadVendors = exports.loadProductTypes = exports.loadProductVariants = exports.loadLocations = exports.loadCollections = exports.loadOrders = exports.loadCustomers = exports.loadProducts = exports.loadMetafields = exports.loadOptionsMethods = void 0;
+exports.searchCollections = exports.loadVendors = exports.loadProductTypes = exports.loadProductVariants = exports.loadLocations = exports.loadCollections = exports.loadOrders = exports.loadCustomers = exports.loadProducts = exports.loadMetafields = exports.loadOptionsMethods = void 0;
 const loadMetafields_1 = require("./loadMetafields");
 const loadProducts_1 = require("./loadProducts");
 const loadCustomers_1 = require("./loadCustomers");
@@ -49,3 +49,5 @@ var loadProductTypes_2 = require("./loadProductTypes");
 Object.defineProperty(exports, "loadProductTypes", { enumerable: true, get: function () { return loadProductTypes_2.loadProductTypes; } });
 var loadVendors_2 = require("./loadVendors");
 Object.defineProperty(exports, "loadVendors", { enumerable: true, get: function () { return loadVendors_2.loadVendors; } });
+var searchCollections_2 = require("./searchCollections");
+Object.defineProperty(exports, "searchCollections", { enumerable: true, get: function () { return searchCollections_2.searchCollections; } });

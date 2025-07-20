@@ -110,6 +110,10 @@ class ShopifyGraphqlModular {
                 async loadLocations() {
                     return await methods_1.loadLocations.call(this);
                 },
+                // Resource Locator Search Methods
+                async searchCollections() {
+                    return await methods_1.searchCollections.call(this);
+                },
                 // Advanced Methods - Enhanced Functionality
                 async loadProductVariants() {
                     return await methods_1.loadProductVariants.call(this);

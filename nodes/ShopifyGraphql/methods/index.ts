@@ -48,4 +48,5 @@ export { loadLocations } from './loadLocations';
 export { loadProductVariants } from './loadProductVariants';
 export { loadProductTypes } from './loadProductTypes';
 export { loadVendors } from './loadVendors';
+export { searchCollections } from './searchCollections';
 

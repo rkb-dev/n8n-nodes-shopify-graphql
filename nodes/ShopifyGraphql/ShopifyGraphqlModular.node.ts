@@ -33,6 +33,7 @@ import {
 	loadProductVariants,
 	loadProductTypes,
 	loadVendors,
+	searchCollections,
 } from './methods';
 
 export class ShopifyGraphqlModular implements INodeType {
@@ -116,6 +117,11 @@ export class ShopifyGraphqlModular implements INodeType {
 			},
 			async loadLocations(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				return await loadLocations.call(this);
+			},
+			
+			// Resource Locator Search Methods
+			async searchCollections(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				return await searchCollections.call(this);
 			},
 			
 			// Advanced Methods - Enhanced Functionality

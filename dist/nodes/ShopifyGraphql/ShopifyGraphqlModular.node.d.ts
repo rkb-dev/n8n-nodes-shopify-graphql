@@ -9,6 +9,7 @@ export declare class ShopifyGraphqlModular implements INodeType {
             loadOrders(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;
             loadCollections(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;
             loadLocations(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;
+            searchCollections(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;
             loadProductVariants(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;
             loadProductTypes(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;
             loadVendors(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]>;
