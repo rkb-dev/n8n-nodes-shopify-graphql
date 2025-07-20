@@ -143,7 +143,7 @@ class ShopifyGraphqlModular {
 						`;
                             variables = { first: 50 };
                         }
-                        // Use the correct API request pattern
+                        // Use the working direct API request pattern (same as loadProducts)
                         const credentials = await this.getCredentials('shopifyGraphqlApi');
                         const requestOptions = {
                             method: 'POST',
