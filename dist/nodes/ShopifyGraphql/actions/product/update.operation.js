@@ -297,8 +297,10 @@ async function execute(i) {
     const productMetafields = this.getNodeParameter('productMetafields', i, {});
     const seoSettings = this.getNodeParameter('seoSettings', i, {});
     // Build product input object with only provided fields
+    // Fix double-GID bug: strip existing GID prefix if present, then add it once
+    const cleanProductId = productId.replace(/^gid:\/\/shopify\/Product\//, '');
     const productInput = {
-        id: `gid://shopify/Product/${productId}`,
+        id: `gid://shopify/Product/${cleanProductId}`,
     };
     if (productTitle)
         productInput.title = productTitle;
