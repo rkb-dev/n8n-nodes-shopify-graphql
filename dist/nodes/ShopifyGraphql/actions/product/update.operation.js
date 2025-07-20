@@ -79,6 +79,10 @@ exports.description = [
         },
         options: [
             {
+                name: 'Keep Current Status',
+                value: '',
+            },
+            {
                 name: 'Active',
                 value: 'ACTIVE',
             },
@@ -136,21 +140,55 @@ exports.description = [
         default: '',
         description: 'Comma-separated list of product tags',
     },
-    // Simple collection selection (optional)
+    // Collection selection with resource locator (optional)
     {
         displayName: 'Add to Collection',
         name: 'collectionId',
-        type: 'options',
+        type: 'resourceLocator',
         typeOptions: {
-            loadOptionsMethod: 'loadCollections',
+            resourceMapper: {
+                resourceMapperMethod: 'getCollectionMappingColumns',
+                mode: 'add',
+                valuesLabel: 'Collection',
+                addAllFields: false,
+                multiKeyMatch: false,
+            },
+            loadOptionsDependsOn: ['resource', 'operation'],
         },
+        modes: [
+            {
+                displayName: 'From List',
+                name: 'list',
+                type: 'list',
+                typeOptions: {
+                    searchListMethod: 'searchCollections',
+                    searchFilterRequired: false,
+                    searchable: true,
+                },
+            },
+            {
+                displayName: 'By ID',
+                name: 'id',
+                type: 'string',
+                validation: [
+                    {
+                        type: 'regex',
+                        properties: {
+                            regex: '^(gid://shopify/Collection/)?[0-9]+$',
+                            errorMessage: 'Collection ID must be a number or valid GID',
+                        },
+                    },
+                ],
+                placeholder: 'e.g., 123456789 or gid://shopify/Collection/123456789',
+            },
+        ],
         displayOptions: {
             show: {
                 resource: ['product'],
                 operation: ['update'],
             },
         },
-        default: '',
+        default: { mode: 'list', value: '' },
         description: 'Select collection to add this product to (optional)',
     },
     // Product Metafields Collection (values only, no type needed)
@@ -260,7 +298,7 @@ async function execute(i) {
     const productVendor = this.getNodeParameter('productVendor', i, '');
     const productType = this.getNodeParameter('productType', i, '');
     const productTags = this.getNodeParameter('productTags', i, '');
-    const collectionId = this.getNodeParameter('collectionId', i, '');
+    const collectionIdParam = this.getNodeParameter('collectionId', i, { mode: 'list', value: '' });
     const productMetafields = this.getNodeParameter('productMetafields', i, {});
     const seoSettings = this.getNodeParameter('seoSettings', i, {});
     // Build product input object with only provided fields
@@ -286,14 +324,24 @@ async function execute(i) {
             productInput.tags = tagsArray;
         }
     }
-    // Handle collection assignment
-    if (collectionId) {
-        if (!collectionId.startsWith('gid://shopify/Collection/')) {
-            const finalCollectionId = `gid://shopify/Collection/${collectionId}`;
-            productInput.collectionsToJoin = [finalCollectionId];
+    // Handle collection assignment (resource locator format)
+    if (collectionIdParam && collectionIdParam.value) {
+        let collectionId = collectionIdParam.value;
+        // Handle different resource locator modes
+        if (collectionIdParam.mode === 'id') {
+            // Direct ID input - ensure it's clean
+            collectionId = collectionId.replace('gid://shopify/Collection/', '');
         }
-        else {
-            productInput.collectionsToJoin = [collectionId];
+        else if (collectionIdParam.mode === 'list') {
+            // From search list - already clean ID
+            // collectionId is already the clean ID
+        }
+        // Convert to GID format and add to product
+        if (collectionId) {
+            const finalCollectionId = collectionId.startsWith('gid://shopify/Collection/')
+                ? collectionId
+                : `gid://shopify/Collection/${collectionId}`;
+            productInput.collectionsToJoin = [finalCollectionId];
         }
     }
     // Handle SEO settings

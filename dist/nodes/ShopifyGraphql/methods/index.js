@@ -10,6 +10,7 @@ const loadLocations_1 = require("./loadLocations");
 const loadProductVariants_1 = require("./loadProductVariants");
 const loadProductTypes_1 = require("./loadProductTypes");
 const loadVendors_1 = require("./loadVendors");
+const searchCollections_1 = require("./searchCollections");
 // Export all dynamic loading methods for n8n loadOptions
 exports.loadOptionsMethods = {
     // High Priority - Essential Methods (Phase 1)
@@ -19,6 +20,8 @@ exports.loadOptionsMethods = {
     loadOrders: loadOrders_1.loadOrders,
     loadCollections: loadCollections_1.loadCollections,
     loadLocations: loadLocations_1.loadLocations,
+    // Resource Locator Search Methods
+    searchCollections: searchCollections_1.searchCollections,
     // Medium Priority - Enhanced Functionality (Phase 2)
     loadProductVariants: loadProductVariants_1.loadProductVariants,
     loadProductTypes: loadProductTypes_1.loadProductTypes,

@@ -7,6 +7,7 @@ import { loadLocations } from './loadLocations';
 import { loadProductVariants } from './loadProductVariants';
 import { loadProductTypes } from './loadProductTypes';
 import { loadVendors } from './loadVendors';
+import { searchCollections } from './searchCollections';
 export declare const loadOptionsMethods: {
     loadProducts: typeof loadProducts;
     loadCustomers: typeof loadCustomers;
@@ -14,6 +15,7 @@ export declare const loadOptionsMethods: {
     loadOrders: typeof loadOrders;
     loadCollections: typeof loadCollections;
     loadLocations: typeof loadLocations;
+    searchCollections: typeof searchCollections;
     loadProductVariants: typeof loadProductVariants;
     loadProductTypes: typeof loadProductTypes;
     loadVendors: typeof loadVendors;

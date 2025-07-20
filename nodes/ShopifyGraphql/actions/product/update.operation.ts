@@ -78,6 +78,10 @@ export const description: INodeProperties[] = [
 		},
 		options: [
 			{
+				name: 'Keep Current Status',
+				value: '',
+			},
+			{
 				name: 'Active',
 				value: 'ACTIVE',
 			},
@@ -135,21 +139,55 @@ export const description: INodeProperties[] = [
 		default: '',
 		description: 'Comma-separated list of product tags',
 	},
-	// Simple collection selection (optional)
+	// Collection selection with resource locator (optional)
 	{
 		displayName: 'Add to Collection',
 		name: 'collectionId',
-		type: 'options',
+		type: 'resourceLocator',
 		typeOptions: {
-			loadOptionsMethod: 'loadCollections',
+			resourceMapper: {
+				resourceMapperMethod: 'getCollectionMappingColumns',
+				mode: 'add',
+				valuesLabel: 'Collection',
+				addAllFields: false,
+				multiKeyMatch: false,
+			},
+			loadOptionsDependsOn: ['resource', 'operation'],
 		},
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchCollections',
+					searchFilterRequired: false,
+					searchable: true,
+				},
+			},
+			{
+				displayName: 'By ID',
+				name: 'id',
+				type: 'string',
+				validation: [
+					{
+						type: 'regex',
+						properties: {
+							regex: '^(gid://shopify/Collection/)?[0-9]+$',
+							errorMessage: 'Collection ID must be a number or valid GID',
+						},
+					},
+				],
+				placeholder: 'e.g., 123456789 or gid://shopify/Collection/123456789',
+			},
+		],
 		displayOptions: {
 			show: {
 				resource: ['product'],
 				operation: ['update'],
 			},
 		},
-		default: '',
+		default: { mode: 'list', value: '' },
 		description: 'Select collection to add this product to (optional)',
 	},
 	// Product Metafields Collection (values only, no type needed)
@@ -267,7 +305,7 @@ export async function execute(
 	const productVendor = this.getNodeParameter('productVendor', i, '') as string;
 	const productType = this.getNodeParameter('productType', i, '') as string;
 	const productTags = this.getNodeParameter('productTags', i, '') as string;
-	const collectionId = this.getNodeParameter('collectionId', i, '') as string;
+	const collectionIdParam = this.getNodeParameter('collectionId', i, { mode: 'list', value: '' }) as any;
 	const productMetafields = this.getNodeParameter('productMetafields', i, {}) as any;
 	const seoSettings = this.getNodeParameter('seoSettings', i, {}) as any;
 
@@ -291,13 +329,25 @@ export async function execute(
 		}
 	}
 	
-	// Handle collection assignment
-	if (collectionId) {
-		if (!collectionId.startsWith('gid://shopify/Collection/')) {
-			const finalCollectionId = `gid://shopify/Collection/${collectionId}`;
+	// Handle collection assignment (resource locator format)
+	if (collectionIdParam && collectionIdParam.value) {
+		let collectionId = collectionIdParam.value;
+		
+		// Handle different resource locator modes
+		if (collectionIdParam.mode === 'id') {
+			// Direct ID input - ensure it's clean
+			collectionId = collectionId.replace('gid://shopify/Collection/', '');
+		} else if (collectionIdParam.mode === 'list') {
+			// From search list - already clean ID
+			// collectionId is already the clean ID
+		}
+		
+		// Convert to GID format and add to product
+		if (collectionId) {
+			const finalCollectionId = collectionId.startsWith('gid://shopify/Collection/') 
+				? collectionId 
+				: `gid://shopify/Collection/${collectionId}`;
 			productInput.collectionsToJoin = [finalCollectionId];
-		} else {
-			productInput.collectionsToJoin = [collectionId];
 		}
 	}
 	

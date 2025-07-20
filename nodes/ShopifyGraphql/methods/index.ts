@@ -7,6 +7,7 @@ import { loadLocations } from './loadLocations';
 import { loadProductVariants } from './loadProductVariants';
 import { loadProductTypes } from './loadProductTypes';
 import { loadVendors } from './loadVendors';
+import { searchCollections } from './searchCollections';
 
 
 
@@ -19,6 +20,9 @@ export const loadOptionsMethods = {
 	loadOrders,
 	loadCollections,
 	loadLocations,
+	
+	// Resource Locator Search Methods
+	searchCollections,
 	
 	// Medium Priority - Enhanced Functionality (Phase 2)
 	loadProductVariants,
