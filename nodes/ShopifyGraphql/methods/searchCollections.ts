@@ -1,4 +1,4 @@
-import type { ILoadOptionsFunctions, INodePropertyOptions } from 'n8n-workflow';
+import type { ILoadOptionsFunctions, INodePropertyOptions, IRequestOptions, IHttpRequestMethods } from 'n8n-workflow';
 import { shopifyGraphqlApiRequest } from '../GenericFunctions';
 
 export async function searchCollections(
@@ -29,7 +29,19 @@ export async function searchCollections(
 			query: searchTerm ? `title:*${searchTerm}* OR handle:*${searchTerm}*` : undefined,
 		};
 
-		const response = await shopifyGraphqlApiRequest.call(this as any, query, variables);
+		// Use the same working direct API request pattern as loadProducts
+		const credentials = await this.getCredentials('shopifyGraphqlApi');
+		const requestOptions: IRequestOptions = {
+			method: 'POST' as IHttpRequestMethods,
+			body: { query, variables },
+			uri: `https://${credentials.shopName}.myshopify.com/admin/api/${credentials.apiVersion}/graphql.json`,
+			json: true,
+			headers: {
+				'X-Shopify-Access-Token': credentials.accessToken,
+				'Content-Type': 'application/json',
+			},
+		};
+		const response = await this.helpers.request(requestOptions);
 		
 		if (!response.data?.collections?.edges) {
 			return [];
