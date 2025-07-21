@@ -14,6 +14,8 @@ export declare function shouldIncludeMetafields(executeFunctions: IExecuteFuncti
 export declare function getProductAdvancedOptions(executeFunctions: IExecuteFunctions, itemIndex: number): {
     includeVariants: boolean;
     includeImages: boolean;
+    includeInventoryDetails: boolean;
+    includeCustomsData: boolean;
     variantsLimit: number;
     imagesLimit: number;
 };

@@ -68,19 +68,28 @@ export const productAdvancedOptionsCollection: INodeProperties = {
 			description: 'Include product images and media',
 		},
 		{
+			displayName: 'Include Inventory Details',
+			name: 'includeInventoryDetails',
+			type: 'boolean',
+			default: false,
+			description: 'Include inventory details (weight, dimensions, shipping requirements). Note: This slows down requests and requires variants to be enabled.',
+		},
+		{
+			displayName: 'Include Customs Data',
+			name: 'includeCustomsData',
+			type: 'boolean',
+			default: false,
+			description: 'Include customs/trade data (country of origin, harmonized system codes, province codes). Required for international shipping compliance and requires variants to be enabled.',
+		},
+		{
 			displayName: 'Variants Limit',
 			name: 'variantsLimit',
 			type: 'number',
 			default: 250,
-			description: 'Maximum number of variants to fetch per product (1-250)',
+			description: 'Maximum number of variants to fetch per product (1-250). Only applies when Include Variants is enabled.',
 			typeOptions: {
 				minValue: 1,
 				maxValue: 250,
-			},
-			displayOptions: {
-				show: {
-					'/includeVariants': [true],
-				},
 			},
 		},
 		{
@@ -88,15 +97,10 @@ export const productAdvancedOptionsCollection: INodeProperties = {
 			name: 'imagesLimit',
 			type: 'number',
 			default: 250,
-			description: 'Maximum number of images to fetch per product (1-250)',
+			description: 'Maximum number of images to fetch per product (1-250). Only applies when Include Images is enabled.',
 			typeOptions: {
 				minValue: 1,
 				maxValue: 250,
-			},
-			displayOptions: {
-				show: {
-					'/includeImages': [true],
-				},
 			},
 		},
 	],

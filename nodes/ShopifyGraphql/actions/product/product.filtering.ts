@@ -47,6 +47,8 @@ export function getProductAdvancedOptions(
 ): {
 	includeVariants: boolean;
 	includeImages: boolean;
+	includeInventoryDetails: boolean;
+	includeCustomsData: boolean;
 	variantsLimit: number;
 	imagesLimit: number;
 } {
@@ -55,6 +57,8 @@ export function getProductAdvancedOptions(
 	return {
 		includeVariants: advancedOptions.includeVariants === true,
 		includeImages: advancedOptions.includeImages === true,
+		includeInventoryDetails: advancedOptions.includeInventoryDetails === true,
+		includeCustomsData: advancedOptions.includeCustomsData === true,
 		variantsLimit: advancedOptions.variantsLimit || 250,
 		imagesLimit: advancedOptions.imagesLimit || 250,
 	};

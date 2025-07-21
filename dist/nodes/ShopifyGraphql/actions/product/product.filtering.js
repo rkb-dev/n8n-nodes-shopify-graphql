@@ -38,6 +38,8 @@ function getProductAdvancedOptions(executeFunctions, itemIndex) {
     return {
         includeVariants: advancedOptions.includeVariants === true,
         includeImages: advancedOptions.includeImages === true,
+        includeInventoryDetails: advancedOptions.includeInventoryDetails === true,
+        includeCustomsData: advancedOptions.includeCustomsData === true,
         variantsLimit: advancedOptions.variantsLimit || 250,
         imagesLimit: advancedOptions.imagesLimit || 250,
     };
