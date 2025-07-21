@@ -118,9 +118,17 @@ async function execute(operation, i) {
 						price
 						compareAtPrice
 						inventoryQuantity
-						weight
-						weightUnit
-						requiresShipping
+						inventoryItem {
+							id
+							requiresShipping
+							measurement {
+								id
+								weight {
+									value
+									unit
+								}
+							}
+						}
 						taxable
 						barcode
 						position
@@ -201,9 +209,17 @@ async function execute(operation, i) {
 						price
 						compareAtPrice
 						inventoryQuantity
-						weight
-						weightUnit
-						requiresShipping
+						inventoryItem {
+							id
+							requiresShipping
+							measurement {
+								id
+								weight {
+									value
+									unit
+								}
+							}
+						}
 						taxable
 						barcode
 						position
