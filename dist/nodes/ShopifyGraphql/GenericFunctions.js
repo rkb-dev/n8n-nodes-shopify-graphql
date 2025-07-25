@@ -69,8 +69,14 @@ async function shopifyGraphqlApiRequestAllItems(resource, query, variables = {},
     let maximumAvailable = 1000;
     let restoreRate = 50; // Points per second
     while (hasNextPage && (maxItems === 0 || totalFetched < maxItems)) {
+        // For first request, use even smaller batch if we have cost estimate
+        let safeBatchSize = batchSize;
+        if (totalFetched === 0 && costEstimatePerItem && costEstimatePerItem > 20) {
+            // Very conservative first batch for expensive queries
+            safeBatchSize = Math.min(batchSize, Math.floor(700 / costEstimatePerItem));
+        }
         // Calculate optimal batch size based on available cost points
-        const optimalBatchSize = calculateOptimalBatchSize(batchSize, currentAvailable, maximumAvailable, costEstimatePerItem);
+        const optimalBatchSize = calculateOptimalBatchSize(safeBatchSize, currentAvailable, maximumAvailable, costEstimatePerItem);
         // Prepare variables for this batch
         const batchVariables = {
             ...variables,
@@ -133,13 +139,15 @@ exports.shopifyGraphqlApiRequestAllItems = shopifyGraphqlApiRequestAllItems;
  * Calculate optimal batch size based on available cost points
  */
 function calculateOptimalBatchSize(requestedBatchSize, currentAvailable, maximumAvailable, costEstimatePerItem) {
-    // Conservative approach: use at most 80% of available points
-    const maxSafeBatchSize = Math.floor(currentAvailable * 0.8);
+    // Conservative approach: use at most 70% of available points (reduced from 80%)
+    const maxSafeBatchSize = Math.floor(currentAvailable * 0.7);
     // Use provided cost estimate or fallback to very conservative default
-    const estimatedCostPerItem = costEstimatePerItem || 25; // Conservative default based on real usage
+    const estimatedCostPerItem = costEstimatePerItem || 50; // More conservative default
     const maxItemsForCost = Math.floor(maxSafeBatchSize / estimatedCostPerItem);
-    // Return the minimum of requested size, cost-based limit, and API maximum
-    return Math.min(requestedBatchSize, maxItemsForCost, 250);
+    // Never exceed 30 items per batch as absolute safety limit for complex queries
+    const absoluteMaxSafe = 30;
+    // Return the minimum of all constraints
+    return Math.min(requestedBatchSize, maxItemsForCost, absoluteMaxSafe);
 }
 /**
  * Helper function to extract ID from Shopify GID
