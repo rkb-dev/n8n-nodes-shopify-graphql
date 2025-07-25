@@ -66,7 +66,9 @@ export function getProductAdvancedOptions(
 
 /**
  * Calculate estimated GraphQL cost per product based on enabled features
- * Based on real-world testing: 10 products with variants+customs = 1971 cost (~197 per product)
+ * Based on real-world testing: 
+ * - 50 products basic+variants = 1255 cost (~25 per product)
+ * - 10 products variants+customs = 1971 cost (~197 per product)
  */
 export function calculateProductCostEstimate(
 	includeMetafields: boolean,
@@ -79,31 +81,32 @@ export function calculateProductCostEstimate(
 		imagesLimit: number;
 	},
 ): number {
-	let cost = 3; // Base product cost
+	let cost = 5; // Base product cost (more realistic)
 	
 	if (includeMetafields) {
-		cost += 15; // Metafields add significant cost
+		cost += 20; // Metafields are expensive
 	}
 	
 	if (advancedOptions.includeVariants) {
-		// Variants are expensive, especially with inventory/customs data
-		let variantCost = Math.min(advancedOptions.variantsLimit, 10) * 8; // Base variant cost
+		// Base variant cost is significant
+		const effectiveVariants = Math.min(advancedOptions.variantsLimit, 10);
+		let variantCost = effectiveVariants * 12; // Higher base cost per variant
 		
 		if (advancedOptions.includeInventoryDetails) {
-			variantCost += Math.min(advancedOptions.variantsLimit, 10) * 15; // Inventory measurement data
+			variantCost += effectiveVariants * 25; // Inventory measurement data is very expensive
 		}
 		
 		if (advancedOptions.includeCustomsData) {
-			variantCost += Math.min(advancedOptions.variantsLimit, 10) * 20; // Customs data + connections
+			variantCost += effectiveVariants * 35; // Customs data + connections are most expensive
 		}
 		
 		cost += variantCost;
 	}
 	
 	if (advancedOptions.includeImages) {
-		cost += Math.min(advancedOptions.imagesLimit, 10) * 2; // Images are relatively cheap
+		cost += Math.min(advancedOptions.imagesLimit, 10) * 3; // Images have some cost
 	}
 	
-	// Add 20% buffer for safety
-	return Math.ceil(cost * 1.2);
+	// Add 30% buffer for safety (was 20%)
+	return Math.ceil(cost * 1.3);
 }

@@ -198,8 +198,8 @@ function calculateOptimalBatchSize(
 	// Conservative approach: use at most 80% of available points
 	const maxSafeBatchSize = Math.floor(currentAvailable * 0.8);
 	
-	// Use provided cost estimate or fallback to conservative default
-	const estimatedCostPerItem = costEstimatePerItem || 10; // More conservative default
+	// Use provided cost estimate or fallback to very conservative default
+	const estimatedCostPerItem = costEstimatePerItem || 25; // Conservative default based on real usage
 	const maxItemsForCost = Math.floor(maxSafeBatchSize / estimatedCostPerItem);
 	
 	// Return the minimum of requested size, cost-based limit, and API maximum
