@@ -130,9 +130,13 @@ async function execute(operation, i) {
 							countryCodeOfOrigin
 							harmonizedSystemCode
 							provinceCodeOfOrigin
-							countryHarmonizedSystemCodes {
-								countryCode
-								harmonizedSystemCode
+							countryHarmonizedSystemCodes(first: 250) {
+								edges {
+									node {
+										countryCode
+										harmonizedSystemCode
+									}
+								}
 							}`;
             }
             variantsFragment = `
@@ -238,9 +242,13 @@ async function execute(operation, i) {
 							countryCodeOfOrigin
 							harmonizedSystemCode
 							provinceCodeOfOrigin
-							countryHarmonizedSystemCodes {
-								countryCode
-								harmonizedSystemCode
+							countryHarmonizedSystemCodes(first: 250) {
+								edges {
+									node {
+										countryCode
+										harmonizedSystemCode
+									}
+								}
 							}`;
             }
             variantsFragment = `

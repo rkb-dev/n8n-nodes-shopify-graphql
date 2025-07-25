@@ -140,9 +140,13 @@ export async function execute(
 							countryCodeOfOrigin
 							harmonizedSystemCode
 							provinceCodeOfOrigin
-							countryHarmonizedSystemCodes {
-								countryCode
-								harmonizedSystemCode
+							countryHarmonizedSystemCodes(first: 250) {
+								edges {
+									node {
+										countryCode
+										harmonizedSystemCode
+									}
+								}
 							}`;
 			}
 			
@@ -256,9 +260,13 @@ export async function execute(
 							countryCodeOfOrigin
 							harmonizedSystemCode
 							provinceCodeOfOrigin
-							countryHarmonizedSystemCodes {
-								countryCode
-								harmonizedSystemCode
+							countryHarmonizedSystemCodes(first: 250) {
+								edges {
+									node {
+										countryCode
+										harmonizedSystemCode
+									}
+								}
 							}`;
 			}
 			
