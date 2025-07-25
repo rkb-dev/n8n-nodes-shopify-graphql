@@ -101,6 +101,7 @@ export async function shopifyGraphqlApiRequestAllItems(
 	variables: any = {},
 	batchSize: number = 250,
 	maxItems: number = 0,
+	costEstimatePerItem?: number,
 ): Promise<any[]> {
 	const returnData: any[] = [];
 	let hasNextPage = true;
@@ -114,7 +115,7 @@ export async function shopifyGraphqlApiRequestAllItems(
 
 	while (hasNextPage && (maxItems === 0 || totalFetched < maxItems)) {
 		// Calculate optimal batch size based on available cost points
-		const optimalBatchSize = calculateOptimalBatchSize(batchSize, currentAvailable, maximumAvailable);
+		const optimalBatchSize = calculateOptimalBatchSize(batchSize, currentAvailable, maximumAvailable, costEstimatePerItem);
 		
 		// Prepare variables for this batch
 		const batchVariables: any = {
@@ -192,12 +193,13 @@ function calculateOptimalBatchSize(
 	requestedBatchSize: number,
 	currentAvailable: number,
 	maximumAvailable: number,
+	costEstimatePerItem?: number,
 ): number {
 	// Conservative approach: use at most 80% of available points
 	const maxSafeBatchSize = Math.floor(currentAvailable * 0.8);
 	
-	// Estimate cost per item (rough approximation)
-	const estimatedCostPerItem = 2; // Conservative estimate
+	// Use provided cost estimate or fallback to conservative default
+	const estimatedCostPerItem = costEstimatePerItem || 10; // More conservative default
 	const maxItemsForCost = Math.floor(maxSafeBatchSize / estimatedCostPerItem);
 	
 	// Return the minimum of requested size, cost-based limit, and API maximum

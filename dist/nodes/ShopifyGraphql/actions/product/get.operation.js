@@ -311,9 +311,11 @@ async function execute(operation, i) {
 				}
 			}
 		`;
+        // Calculate cost estimate based on enabled features for smart batching
+        const costEstimate = (0, product_filtering_1.calculateProductCostEstimate)(includeMetafields, advancedOptions);
         // Pass query filters as GraphQL variable
         const variables = { query: queryString };
-        return await GenericFunctions_1.shopifyGraphqlApiRequestAllItems.call(this, 'products', query, variables, batchSize, maxItems);
+        return await GenericFunctions_1.shopifyGraphqlApiRequestAllItems.call(this, 'products', query, variables, batchSize, maxItems, costEstimate);
     }
     throw new Error(`Unknown product operation: ${operation}`);
 }

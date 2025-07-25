@@ -58,7 +58,7 @@ exports.shopifyGraphqlApiRequest = shopifyGraphqlApiRequest;
 /**
  * Make paginated GraphQL requests to get all items with smart batching
  */
-async function shopifyGraphqlApiRequestAllItems(resource, query, variables = {}, batchSize = 250, maxItems = 0) {
+async function shopifyGraphqlApiRequestAllItems(resource, query, variables = {}, batchSize = 250, maxItems = 0, costEstimatePerItem) {
     var _a;
     const returnData = [];
     let hasNextPage = true;
@@ -70,7 +70,7 @@ async function shopifyGraphqlApiRequestAllItems(resource, query, variables = {},
     let restoreRate = 50; // Points per second
     while (hasNextPage && (maxItems === 0 || totalFetched < maxItems)) {
         // Calculate optimal batch size based on available cost points
-        const optimalBatchSize = calculateOptimalBatchSize(batchSize, currentAvailable, maximumAvailable);
+        const optimalBatchSize = calculateOptimalBatchSize(batchSize, currentAvailable, maximumAvailable, costEstimatePerItem);
         // Prepare variables for this batch
         const batchVariables = {
             ...variables,
@@ -132,11 +132,11 @@ exports.shopifyGraphqlApiRequestAllItems = shopifyGraphqlApiRequestAllItems;
 /**
  * Calculate optimal batch size based on available cost points
  */
-function calculateOptimalBatchSize(requestedBatchSize, currentAvailable, maximumAvailable) {
+function calculateOptimalBatchSize(requestedBatchSize, currentAvailable, maximumAvailable, costEstimatePerItem) {
     // Conservative approach: use at most 80% of available points
     const maxSafeBatchSize = Math.floor(currentAvailable * 0.8);
-    // Estimate cost per item (rough approximation)
-    const estimatedCostPerItem = 2; // Conservative estimate
+    // Use provided cost estimate or fallback to conservative default
+    const estimatedCostPerItem = costEstimatePerItem || 10; // More conservative default
     const maxItemsForCost = Math.floor(maxSafeBatchSize / estimatedCostPerItem);
     // Return the minimum of requested size, cost-based limit, and API maximum
     return Math.min(requestedBatchSize, maxItemsForCost, 250);

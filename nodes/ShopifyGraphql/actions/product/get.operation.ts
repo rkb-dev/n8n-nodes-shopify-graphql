@@ -1,7 +1,7 @@
 import type { IExecuteFunctions, INodeProperties } from 'n8n-workflow';
 import { shopifyGraphqlApiRequest, shopifyGraphqlApiRequestAllItems } from '../../GenericFunctions';
 import { additionalFieldsCollection, productAdvancedOptionsCollection } from './product.fields';
-import { buildProductQueryFilters, shouldIncludeMetafields, getProductAdvancedOptions } from './product.filtering';
+import { buildProductQueryFilters, shouldIncludeMetafields, getProductAdvancedOptions, calculateProductCostEstimate } from './product.filtering';
 
 export const description: INodeProperties[] = [
 	// Product selection with dynamic loading
@@ -332,9 +332,12 @@ export async function execute(
 				}
 			}
 		`;
+		// Calculate cost estimate based on enabled features for smart batching
+		const costEstimate = calculateProductCostEstimate(includeMetafields, advancedOptions);
+		
 		// Pass query filters as GraphQL variable
 		const variables = { query: queryString };
-		return await shopifyGraphqlApiRequestAllItems.call(this, 'products', query, variables, batchSize, maxItems);
+		return await shopifyGraphqlApiRequestAllItems.call(this, 'products', query, variables, batchSize, maxItems, costEstimate);
 	}
 	
 	throw new Error(`Unknown product operation: ${operation}`);

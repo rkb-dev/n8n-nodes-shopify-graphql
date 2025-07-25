@@ -28,7 +28,7 @@ export declare function shopifyGraphqlApiRequest(this: IExecuteFunctions, query:
 /**
  * Make paginated GraphQL requests to get all items with smart batching
  */
-export declare function shopifyGraphqlApiRequestAllItems(this: IExecuteFunctions, resource: string, query: string, variables?: any, batchSize?: number, maxItems?: number): Promise<any[]>;
+export declare function shopifyGraphqlApiRequestAllItems(this: IExecuteFunctions, resource: string, query: string, variables?: any, batchSize?: number, maxItems?: number, costEstimatePerItem?: number): Promise<any[]>;
 /**
  * Helper function to extract ID from Shopify GID
  */

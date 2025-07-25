@@ -19,3 +19,15 @@ export declare function getProductAdvancedOptions(executeFunctions: IExecuteFunc
     variantsLimit: number;
     imagesLimit: number;
 };
+/**
+ * Calculate estimated GraphQL cost per product based on enabled features
+ * Based on real-world testing: 10 products with variants+customs = 1971 cost (~197 per product)
+ */
+export declare function calculateProductCostEstimate(includeMetafields: boolean, advancedOptions: {
+    includeVariants: boolean;
+    includeImages: boolean;
+    includeInventoryDetails: boolean;
+    includeCustomsData: boolean;
+    variantsLimit: number;
+    imagesLimit: number;
+}): number;
