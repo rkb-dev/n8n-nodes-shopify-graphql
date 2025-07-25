@@ -38,23 +38,19 @@ exports.description = [
         default: '',
         description: 'Enter product ID manually if not found in dropdown',
     },
-    // Batch size for getAll operation
+    // Auto-optimized batching (no user configuration needed)
     {
-        displayName: 'Batch Size',
-        name: 'batchSize',
-        type: 'number',
+        displayName: 'Automatic Batching',
+        name: 'autoBatchingInfo',
+        type: 'notice',
         displayOptions: {
             show: {
                 resource: ['product'],
                 operation: ['getAll'],
             },
         },
-        default: 50,
-        description: 'Number of products to fetch per batch (max 250)',
-        typeOptions: {
-            minValue: 1,
-            maxValue: 250,
-        },
+        default: '',
+        description: '🤖 Batch sizes are automatically optimized based on enabled features to stay within GraphQL cost limits. Complex queries (variants + customs) use smaller batches for speed.',
     },
     {
         displayName: 'Max Items',
@@ -196,13 +192,15 @@ async function execute(operation, i) {
         return response.data.product;
     }
     else if (operation === 'getAll') {
-        const batchSize = this.getNodeParameter('batchSize', i, 50);
         const maxItems = this.getNodeParameter('maxItems', i, 0);
-        // Build query filters using extracted filtering logic
-        const queryString = (0, product_filtering_1.buildProductQueryFilters)(this, i);
-        // Get advanced options for query enhancement
+        // Calculate cost estimate and optimal batch size automatically
         const includeMetafields = (0, product_filtering_1.shouldIncludeMetafields)(this, i);
         const advancedOptions = (0, product_filtering_1.getProductAdvancedOptions)(this, i);
+        const costEstimate = (0, product_filtering_1.calculateProductCostEstimate)(includeMetafields, advancedOptions);
+        // Set optimal batch size: aim for 700-800 points per batch (safe margin)
+        const optimalBatchSize = Math.min(Math.floor(700 / costEstimate), 250);
+        // Build query filters using extracted filtering logic
+        const queryString = (0, product_filtering_1.buildProductQueryFilters)(this, i);
         // Build metafields fragment if needed
         let metafieldsFragment = '';
         if (includeMetafields) {
@@ -311,11 +309,9 @@ async function execute(operation, i) {
 				}
 			}
 		`;
-        // Calculate cost estimate based on enabled features for smart batching
-        const costEstimate = (0, product_filtering_1.calculateProductCostEstimate)(includeMetafields, advancedOptions);
         // Pass query filters as GraphQL variable
         const variables = { query: queryString };
-        return await GenericFunctions_1.shopifyGraphqlApiRequestAllItems.call(this, 'products', query, variables, batchSize, maxItems, costEstimate);
+        return await GenericFunctions_1.shopifyGraphqlApiRequestAllItems.call(this, 'products', query, variables, optimalBatchSize, maxItems, costEstimate);
     }
     throw new Error(`Unknown product operation: ${operation}`);
 }

@@ -21,9 +21,11 @@ export declare function getProductAdvancedOptions(executeFunctions: IExecuteFunc
 };
 /**
  * Calculate estimated GraphQL cost per product based on enabled features
- * Based on real-world testing:
- * - 50 products basic+variants = 1255 cost (~25 per product)
- * - 10 products variants+customs = 1971 cost (~197 per product)
+ * SCIENTIFIC MODEL based on real Shopify data:
+ * - 30 products + metafields = 692 cost (~23 points/product)
+ * - 50 products + variants = 1255 cost (~25 points/product)
+ * - 10 products + variants + customs = 1971 cost (~197 points/product)
+ * - Official: Base object = 1 point, Connection = 2 + objects
  */
 export declare function calculateProductCostEstimate(includeMetafields: boolean, advancedOptions: {
     includeVariants: boolean;
