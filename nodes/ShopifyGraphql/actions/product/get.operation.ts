@@ -117,6 +117,35 @@ export async function execute(
 		// Build variants fragment if needed
 		let variantsFragment = '';
 		if (advancedOptions.includeVariants) {
+			// Build conditional inventory item fragments
+			let inventoryItemFields = `
+							id
+							requiresShipping`;
+			
+			// Add inventory details if requested
+			if (advancedOptions.includeInventoryDetails) {
+				inventoryItemFields += `
+							measurement {
+								id
+								weight {
+									value
+									unit
+								}
+							}`;
+			}
+			
+			// Add customs data if requested
+			if (advancedOptions.includeCustomsData) {
+				inventoryItemFields += `
+							countryCodeOfOrigin
+							harmonizedSystemCode
+							provinceCodeOfOrigin
+							countryHarmonizedSystemCodes {
+								countryCode
+								harmonizedSystemCode
+							}`;
+			}
+			
 			variantsFragment = `
 				variants(first: ${advancedOptions.variantsLimit}) {
 					nodes {
@@ -126,16 +155,7 @@ export async function execute(
 						price
 						compareAtPrice
 						inventoryQuantity
-						inventoryItem {
-							id
-							requiresShipping
-							measurement {
-								id
-								weight {
-									value
-									unit
-								}
-							}
+						inventoryItem {${inventoryItemFields}
 						}
 						taxable
 						barcode
@@ -213,6 +233,35 @@ export async function execute(
 		// Build variants fragment if needed
 		let variantsFragment = '';
 		if (advancedOptions.includeVariants) {
+			// Build conditional inventory item fragments
+			let inventoryItemFields = `
+							id
+							requiresShipping`;
+			
+			// Add inventory details if requested
+			if (advancedOptions.includeInventoryDetails) {
+				inventoryItemFields += `
+							measurement {
+								id
+								weight {
+									value
+									unit
+								}
+							}`;
+			}
+			
+			// Add customs data if requested
+			if (advancedOptions.includeCustomsData) {
+				inventoryItemFields += `
+							countryCodeOfOrigin
+							harmonizedSystemCode
+							provinceCodeOfOrigin
+							countryHarmonizedSystemCodes {
+								countryCode
+								harmonizedSystemCode
+							}`;
+			}
+			
 			variantsFragment = `
 				variants(first: ${advancedOptions.variantsLimit}) {
 					nodes {
@@ -222,16 +271,7 @@ export async function execute(
 						price
 						compareAtPrice
 						inventoryQuantity
-						inventoryItem {
-							id
-							requiresShipping
-							measurement {
-								id
-								weight {
-									value
-									unit
-								}
-							}
+						inventoryItem {${inventoryItemFields}
 						}
 						taxable
 						barcode
